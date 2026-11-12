@@ -1,12 +1,71 @@
 rules_version = '2';
 
 // Dearly Club security rules.
-// Orders, members and payment records are written only by the Cloud Functions
-// (which bypass these rules), never directly by the website. Nothing is
-// readable from a browser yet. The admin area (Phase 7) and community
-// (Phase 9) open specific paths to signed-in users.
+//
+// Orders, members, gifts and payment records are created only by the Cloud
+// Functions (which bypass these rules), never directly by the website.
+//
+// The admin area: someone is an admin when a document exists at
+// admins/{their user id}. Only the Firebase console (or the Functions) can
+// create that document — nobody can make themselves an admin from the site.
+// Admins can read the business records and make a few small updates
+// (mark a letter shipped, mark a message handled). Everything else is locked.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    // The update only touches these fields.
+    function onlyChanges(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    // Lets the admin area check "am I an admin?" for the signed-in user only.
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /orders/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && onlyChanges(['status', 'shippedAt', 'adminNote'])
+        && request.resource.data.status in ['paid', 'shipped'];
+    }
+
+    match /members/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin() && onlyChanges(['adminNote']);
+    }
+
+    match /gifts/{id} {
+      allow read: if isAdmin();
+    }
+
+    match /messages/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && onlyChanges(['status', 'handledAt'])
+        && request.resource.data.status in ['new', 'handled'];
+    }
+
+    match /withdrawals/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && onlyChanges(['status', 'handledAt'])
+        && request.resource.data.status in ['received', 'handled'];
+    }
+
+    match /campaigns/{id} {
+      allow read: if isAdmin();
+    }
+
+    // Everything else (mail queue, gift codes, Stripe events, rate limits…)
+    // stays closed to browsers.
     match /{document=**} {
       allow read, write: if false;
     }

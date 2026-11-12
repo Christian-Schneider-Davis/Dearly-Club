@@ -195,3 +195,41 @@ export function withdrawalNoticeEmail(w, subjectLabel, date, adminEmail) {
     message: { subject: `Withdrawal: ${w.name} (${subjectLabel})`, text, html: `<pre style="font-family:Arial,sans-serif;font-size:14px;white-space:pre-wrap;">${escapeHtml(text)}</pre>` },
   }
 }
+
+/** Contact-form message forwarded to Ariane (reply goes straight to the sender). */
+export function contactNoticeEmail(m, adminEmail) {
+  const name = `${m.firstName} ${m.lastName}`.trim()
+  const text = `New message from ${name} <${m.email}>\n\n${m.message}`
+  return {
+    to: adminEmail,
+    replyTo: m.email,
+    message: {
+      subject: `Message from ${name} — Dearly Club`,
+      text,
+      html: layout({
+        preheader: `New message from ${name}`,
+        body: `<p style="font-family:Arial,sans-serif;font-size:13px;color:#5f574f;">From ${escapeHtml(name)} &lt;${escapeHtml(m.email)}&gt; — reply to this email to answer.</p><p>${escapeHtml(m.message).replace(/\n/g, '<br>')}</p>`,
+      }),
+    },
+  }
+}
+
+/** A message Ariane writes to members from the admin area. */
+export function memberMessageEmail({ to, firstName, subject, body }) {
+  const greeting = firstName ? `Dear ${firstName},` : ''
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+    .join('')
+  return {
+    to,
+    message: {
+      subject,
+      text: `${greeting ? `${greeting}\n\n` : ''}${body}\n\n—\nYou're receiving this because you're part of Dearly Club. Manage your membership: ${siteUrl('manage')}`,
+      html: layout({
+        preheader: subject,
+        body: `${greeting ? `<p>${escapeHtml(greeting)}</p>` : ''}${paragraphs}<p style="margin-top:28px;font-family:Arial,sans-serif;font-size:12px;color:#5f574f;">You're receiving this because you're part of Dearly Club. <a href="${siteUrl('manage')}" style="color:#7a1f24;">Manage your membership</a>.</p>`,
+      }),
+    },
+  }
+}

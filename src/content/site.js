@@ -183,7 +183,8 @@ export const membershipPage = {
 }
 
 export const contactPage = {
-  successPreview: 'Thank you for your message. The contact form goes live with the new site; until then you can reach Ariane on Instagram.',
+  successTitle: 'Thank you for your message',
+  success: 'It’s on its way to Ariane, who will reply to the email address you gave.',
 }
 
 /*

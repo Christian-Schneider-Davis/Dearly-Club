@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import SiteLayout from './components/layout/SiteLayout'
 import Home from './pages/Home'
@@ -15,6 +16,9 @@ import Withdraw from './pages/Withdraw'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
+
+// The admin area (and Firebase Auth/Firestore) only downloads when someone opens /admin.
+const AdminApp = lazy(() => import('./admin/AdminApp'))
 
 /*
  * Every page of the approved site map. Placeholders are swapped for the real
@@ -41,7 +45,14 @@ export default function App() {
         <Route path="styleguide" element={<StyleGuide />} />
         <Route path="*" element={<NotFound />} />
       </Route>
-      <Route path="admin/*" element={<PagePlaceholder title="Admin" phase={7} />} />
+      <Route
+        path="admin/*"
+        element={
+          <Suspense fallback={null}>
+            <AdminApp />
+          </Suspense>
+        }
+      />
     </Routes>
   )
 }

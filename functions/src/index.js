@@ -28,6 +28,7 @@ import { orderConfirmationEmail, queueEmail } from './emails.js'
 
 export { createGiftCheckout, redeemGift, sendScheduledGifts, monthlyGiftOrders } from './gifts.js'
 export { submitWithdrawal } from './withdrawals.js'
+export { submitContact, adminSendEmail, adminResendGift } from './admin.js'
 
 /* ------------------------------------------------------------------ */
 /* 1. Create checkout                                                  */

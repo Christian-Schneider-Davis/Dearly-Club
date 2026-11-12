@@ -127,3 +127,8 @@
   font-size: var(--text-h3);
   color: var(--text);
 }
+
+.formError {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}

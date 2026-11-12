@@ -104,3 +104,18 @@ test('withdrawal: needs name, email, subject and the confirm step', () => {
   const bad = validateWithdrawal({ subject: 'other' })
   for (const k of ['name', 'email', 'subject', 'confirmed']) assert.ok(bad.errors[k], k)
 })
+
+import { validateBroadcast, validateContact } from '../src/validate.js'
+
+test('contact: first name, email and a real message required', () => {
+  assert.deepEqual(validateContact({ firstName: 'Léa', email: 'lea@example.com', message: 'Hello, I love it!' }).errors, {})
+  const { errors } = validateContact({ message: 'hi' })
+  assert.ok(errors.firstName && errors.email && errors.message)
+})
+
+test('broadcast: audience rules, preview needs no subject', () => {
+  assert.ok(validateBroadcast({ audience: 'everyone' }).errors.audience)
+  assert.ok(validateBroadcast({ audience: 'single', email: 'x', subject: 's', body: 'hello' }).errors.email)
+  assert.deepEqual(validateBroadcast({ audience: 'active', dryRun: true }).errors, {})
+  assert.ok(validateBroadcast({ audience: 'active' }).errors.subject)
+})

@@ -208,3 +208,42 @@ export function validateWithdrawal(input = {}) {
   if (input.confirmed !== true) errors.confirmed = 'Please confirm your withdrawal.'
   return { value, errors }
 }
+
+/* ------------------------------------------------------------------ */
+/* Contact form & admin emails                                         */
+/* ------------------------------------------------------------------ */
+const longText = (v, max) => (typeof v === 'string' ? v.replace(/\r/g, '').trim().slice(0, max) : '')
+
+export function validateContact(input = {}) {
+  const errors = {}
+  const value = {
+    firstName: clean(input.firstName, 80),
+    lastName: clean(input.lastName, 80),
+    email: clean(input.email, 254).toLowerCase(),
+    message: longText(input.message, 5000),
+  }
+  if (!value.firstName) errors.firstName = 'First name is required.'
+  if (!EMAIL.test(value.email)) errors.email = 'A valid email is required.'
+  if (value.message.length < 10) errors.message = 'Your message needs at least 10 characters.'
+  return { value, errors }
+}
+
+export const AUDIENCES = ['active', 'all', 'gift', 'single']
+
+export function validateBroadcast(input = {}) {
+  const errors = {}
+  const value = {
+    audience: clean(input.audience, 10),
+    email: clean(input.email, 254).toLowerCase(),
+    subject: clean(input.subject, 150),
+    body: longText(input.body, 10000),
+    dryRun: input.dryRun === true,
+  }
+  if (!AUDIENCES.includes(value.audience)) errors.audience = 'Choose who to send to.'
+  if (value.audience === 'single' && !EMAIL.test(value.email)) errors.email = 'A valid email is required.'
+  if (!value.dryRun) {
+    if (!value.subject) errors.subject = 'A subject is required.'
+    if (value.body.length < 2) errors.body = 'Write a message.'
+  }
+  return { value, errors }
+}

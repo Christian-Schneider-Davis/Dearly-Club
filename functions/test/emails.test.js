@@ -57,3 +57,12 @@ test('withdrawal receipt contains the statement and time received', () => {
   assert.ok(mail.message.html.includes('I hereby withdraw'))
   assert.ok(!mail.message.html.includes('<b>x</b>'))
 })
+
+const { memberMessageEmail } = await import('../src/emails.js')
+
+test('member email escapes text and keeps paragraphs', () => {
+  const m = memberMessageEmail({ to: 'a@b.co', firstName: 'Léa', subject: 'Hi', body: 'One\n\n<script>two</script>' })
+  assert.ok(m.message.html.includes('Dear Léa'))
+  assert.ok(!m.message.html.includes('<script>'))
+  assert.equal((m.message.html.match(/<p>/g) || []).length >= 3, true)
+})

@@ -7,5 +7,7 @@ import { imagetools } from 'vite-imagetools'
 // - Custom domain (dearlyclub.eu) or local dev: '/'
 export default defineConfig({
   base: process.env.VITE_BASE || '/',
+  // The admin chunk carries Firestore (~175 kB gzipped); it only loads on /admin.
+  build: { chunkSizeWarningLimit: 700 },
   plugins: [react(), imagetools()],
 })

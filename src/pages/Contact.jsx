@@ -8,6 +8,7 @@ import Icon from '../components/ui/Icon'
 import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import ResponsiveImage from '../components/ui/ResponsiveImage'
 import usePageTitle from '../hooks/usePageTitle'
+import { readCallError } from '../lib/callErrors'
 import { email, minLength, required, validate } from '../lib/validate'
 import styles from './Contact.module.css'
 
@@ -27,6 +28,8 @@ export default function Contact() {
   const [values, setValues] = useState(empty)
   const [errors, setErrors] = useState({})
   const [sent, setSent] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [formError, setFormError] = useState('')
   const formRef = useRef(null)
 
   const set = (name) => (e) => {
@@ -34,10 +37,9 @@ export default function Contact() {
     if (errors[name]) setErrors((er) => ({ ...er, [name]: '' }))
   }
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault()
-    // "website" is a hidden honeypot: real people never fill it in; bots do.
-    if (values.website) return
+    setFormError('')
     const found = validate(schema, values)
     setErrors(found)
     const firstBad = Object.keys(found)[0]
@@ -45,8 +47,20 @@ export default function Contact() {
       formRef.current.querySelector(`[name="${firstBad}"]`)?.focus()
       return
     }
-    // TODO (Phase 7): save to the messages inbox in the admin area and email Ariane.
-    setSent(true)
+    setBusy(true)
+    try {
+      // Lands in the admin inbox and in Ariane's email. "website" is the hidden
+      // honeypot field: the server quietly ignores anything that fills it.
+      const { callFunction } = await import('../lib/firebase')
+      await callFunction('submitContact', values)
+      setSent(true)
+    } catch (err) {
+      const { fields, message } = readCallError(err)
+      if (fields) setErrors(fields)
+      setFormError(message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -77,8 +91,8 @@ export default function Contact() {
           {sent ? (
             <div className={styles.sent} role="status">
               <Icon name="letter" size={48} className={styles.sentIcon} />
-              <h2 className={styles.sentTitle}>Message ready to send</h2>
-              <p>{contactPage.successPreview}</p>
+              <h2 className={styles.sentTitle}>{contactPage.successTitle}</h2>
+              <p>{contactPage.success}</p>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -139,8 +153,13 @@ export default function Contact() {
               <p className={styles.required}>
                 <span aria-hidden="true">*</span> Required
               </p>
-              <Button type="submit" size="lg" block>
-                {contact.submit}
+              {formError && (
+                <p className={styles.formError} role="alert">
+                  {formError}
+                </p>
+              )}
+              <Button type="submit" size="lg" block disabled={busy}>
+                {busy ? 'Sending…' : contact.submit}
               </Button>
             </form>
           )}
