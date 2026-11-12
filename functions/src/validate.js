@@ -228,7 +228,7 @@ export function validateContact(input = {}) {
   return { value, errors }
 }
 
-export const AUDIENCES = ['active', 'all', 'gift', 'single']
+export const AUDIENCES = ['active', 'all', 'gift', 'newsletter', 'single']
 
 export function validateBroadcast(input = {}) {
   const errors = {}
@@ -246,4 +246,34 @@ export function validateBroadcast(input = {}) {
     if (value.body.length < 2) errors.body = 'Write a message.'
   }
   return { value, errors }
+}
+
+/* ------------------------------------------------------------------ */
+/* Newsletter                                                          */
+/* ------------------------------------------------------------------ */
+export const isEmail = (v) => EMAIL.test(v)
+
+export function validateSubscribe(input = {}) {
+  const email = clean(input.email, 254).toLowerCase()
+  const errors = {}
+  if (!EMAIL.test(email)) errors.email = 'Please enter a valid email address.'
+  if (input.consent !== true) errors.consent = 'Please tick the box so we can add you to the list.'
+  return { value: { email }, errors }
+}
+
+/** Cleans an imported list: valid, unique, lower-case emails with optional first names. */
+export function cleanImport(rows = [], max = 5000) {
+  const seen = new Set()
+  const out = []
+  let skipped = 0
+  for (const r of Array.isArray(rows) ? rows.slice(0, max) : []) {
+    const email = clean(r?.email, 254).toLowerCase()
+    if (!EMAIL.test(email) || seen.has(email)) {
+      skipped++
+      continue
+    }
+    seen.add(email)
+    out.push({ email, firstName: clean(r?.firstName, 80) })
+  }
+  return { rows: out, skipped }
 }

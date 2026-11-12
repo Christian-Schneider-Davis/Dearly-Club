@@ -1,0 +1,29 @@
+.page {
+  padding-top: var(--space-6);
+  min-height: 70vh;
+}
+.inner {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+.icon {
+  color: var(--accent);
+}
+.title {
+  font-size: var(--text-h1);
+}
+.lead {
+  font-size: var(--text-lg);
+  max-width: 34rem;
+}
+.muted {
+  color: var(--text-muted);
+}
+.error {
+  color: var(--color-error);
+}
+.back {
+  margin-top: var(--space-5);
+}

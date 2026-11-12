@@ -66,3 +66,11 @@ test('member email escapes text and keeps paragraphs', () => {
   assert.ok(!m.message.html.includes('<script>'))
   assert.equal((m.message.html.match(/<p>/g) || []).length >= 3, true)
 })
+
+test('newsletter emails carry an unsubscribe link and header', () => {
+  const m = memberMessageEmail({ to: 'a@b.co', subject: 'Hi', body: 'Hello', unsubscribeUrl: 'https://x.test/newsletter/unsubscribe?token=abc' })
+  assert.ok(m.message.html.includes('Unsubscribe'))
+  assert.ok(m.message.text.includes('token=abc'))
+  assert.equal(m.message.headers['List-Unsubscribe'], '<https://x.test/newsletter/unsubscribe?token=abc>')
+  assert.ok(!memberMessageEmail({ to: 'a@b.co', subject: 'Hi', body: 'Hello' }).message.headers)
+})

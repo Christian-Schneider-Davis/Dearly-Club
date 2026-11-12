@@ -12,6 +12,7 @@ import Members from './pages/Members'
 import Gifts from './pages/Gifts'
 import Inbox from './pages/Inbox'
 import EmailMembers from './pages/EmailMembers'
+import Newsletter from './pages/Newsletter'
 import styles from './admin.module.css'
 
 /** Admin area: sign-in, admin check, then the dashboard pages. */
@@ -19,13 +20,6 @@ export default function AdminApp() {
   // undefined = still checking, null = signed out
   const [user, setUser] = useState(undefined)
   const [isAdmin, setIsAdmin] = useState(false)
-
-  useEffect(() => {
-    // Keep the admin area out of search engines.
-    const meta = Object.assign(document.createElement('meta'), { name: 'robots', content: 'noindex, nofollow' })
-    document.head.append(meta)
-    return () => meta.remove()
-  }, [])
 
   useEffect(
     () =>
@@ -70,6 +64,7 @@ export default function AdminApp() {
         <Route path="gifts" element={<Gifts />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="email" element={<EmailMembers />} />
+        <Route path="newsletter" element={<Newsletter />} />
         <Route path="*" element={<Navigate to="" replace />} />
       </Route>
     </Routes>

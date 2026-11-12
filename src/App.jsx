@@ -13,6 +13,7 @@ import GiftSuccess from './pages/GiftSuccess'
 import Redeem from './pages/Redeem'
 import LegalPage from './pages/LegalPage'
 import Withdraw from './pages/Withdraw'
+import NewsletterAction from './pages/NewsletterAction'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
@@ -40,6 +41,8 @@ export default function App() {
         <Route path="contact" element={<Contact />} />
         <Route path="dearly-chat" element={<PagePlaceholder title="The Dearly Chat" phase={9} />} />
         <Route path="account" element={<PagePlaceholder title="Your Account" phase={9} />} />
+        <Route path="newsletter/confirm" element={<NewsletterAction action="confirm" />} />
+        <Route path="newsletter/unsubscribe" element={<NewsletterAction action="unsubscribe" />} />
         <Route path="legal/withdraw" element={<Withdraw />} />
         <Route path="legal/:doc" element={<LegalPage />} />
         <Route path="styleguide" element={<StyleGuide />} />

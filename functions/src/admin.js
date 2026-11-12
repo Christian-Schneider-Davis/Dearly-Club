@@ -11,7 +11,7 @@
 import { FieldValue } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import { contactNoticeEmail, giftCardEmail, memberMessageEmail, queueEmail } from './emails.js'
-import { ADMIN_EMAIL, cors, db, rateLimit } from './shared.js'
+import { ADMIN_EMAIL, cors, db, rateLimit, siteUrl } from './shared.js'
 import { validateBroadcast, validateContact } from './validate.js'
 
 export async function requireAdmin(request) {
@@ -50,14 +50,21 @@ export const submitContact = onCall({ cors }, async (request) => {
 const MAX_RECIPIENTS = 2000
 
 async function audienceEmails(audience, single) {
-  const emails = new Map() // email → first name
-  const add = (email, firstName) => {
+  const emails = new Map() // email → { firstName, unsubscribeUrl? }
+  const add = (email, firstName, extra = {}) => {
     const e = String(email ?? '').trim().toLowerCase()
-    if (e && !emails.has(e)) emails.set(e, firstName ?? '')
+    if (e && !emails.has(e)) emails.set(e, { firstName: firstName ?? '', ...extra })
   }
 
   if (audience === 'single') {
     add(single, '')
+    return emails
+  }
+  if (audience === 'newsletter') {
+    ;(await db.collection('subscribers').where('status', '==', 'subscribed').get()).forEach((d) => {
+      const s = d.data()
+      add(s.email, s.firstName, { unsubscribeUrl: siteUrl(`newsletter/unsubscribe?token=${s.token}`) })
+    })
     return emails
   }
   if (audience === 'active' || audience === 'all') {
@@ -90,9 +97,9 @@ export const adminSendEmail = onCall({ cors }, async (request) => {
   // Firestore batches hold up to 500 writes.
   for (let i = 0; i < entries.length; i += 450) {
     const batch = db.batch()
-    for (const [email, firstName] of entries.slice(i, i + 450)) {
+    for (const [email, { firstName, unsubscribeUrl }] of entries.slice(i, i + 450)) {
       batch.set(db.collection('mail').doc(), {
-        ...memberMessageEmail({ to: email, firstName, subject: value.subject, body: value.body }),
+        ...memberMessageEmail({ to: email, firstName, subject: value.subject, body: value.body, unsubscribeUrl }),
         campaignId: campaign.id,
         createdAt: FieldValue.serverTimestamp(),
       })

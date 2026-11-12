@@ -119,3 +119,17 @@ test('broadcast: audience rules, preview needs no subject', () => {
   assert.deepEqual(validateBroadcast({ audience: 'active', dryRun: true }).errors, {})
   assert.ok(validateBroadcast({ audience: 'active' }).errors.subject)
 })
+
+import { cleanImport, validateSubscribe } from '../src/validate.js'
+
+test('newsletter: needs a valid email and ticked consent', () => {
+  assert.deepEqual(validateSubscribe({ email: ' Lea@Example.com ', consent: true }), { value: { email: 'lea@example.com' }, errors: {} })
+  const { errors } = validateSubscribe({ email: 'nope', consent: false })
+  assert.ok(errors.email && errors.consent)
+})
+
+test('newsletter import: dedupes, lower-cases, skips bad rows', () => {
+  const { rows, skipped } = cleanImport([{ email: 'A@b.co', firstName: 'Ann' }, { email: 'a@b.co' }, { email: 'bad' }, null])
+  assert.deepEqual(rows, [{ email: 'a@b.co', firstName: 'Ann' }])
+  assert.equal(skipped, 3)
+})

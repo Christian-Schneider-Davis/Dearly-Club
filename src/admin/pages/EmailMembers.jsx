@@ -16,6 +16,7 @@ const AUDIENCES = {
   active: 'Active monthly members',
   gift: 'Gift members (with months left)',
   all: 'Everyone who has ever been a member',
+  newsletter: 'Newsletter subscribers (adds an unsubscribe link)',
   single: 'One person',
 }
 

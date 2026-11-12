@@ -209,3 +209,8 @@ a:hover {
   margin-top: calc(var(--header-h) * -1);
   padding-top: calc(var(--header-h) + var(--space-6)) !important;
 }
+
+/* Fieldsets default to min-width: min-content, which can push forms wider than small phones. */
+fieldset {
+  min-width: 0;
+}

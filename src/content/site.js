@@ -12,6 +12,17 @@ export const brand = {
   copyright: '© 2026 by Ariane Lignier', // verbatim
 }
 
+/* Search & share descriptions per page (under ~155 characters). */
+export const seo = {
+  '/': 'Create deeper connection, one letter at a time. A monthly mail club with a hand-painted postcard, a paper letter, a writing prompt and a connection ritual.',
+  '/memberships': 'Join Dearly Club for €9 a month, or try a single letter for €9. Shipping included worldwide. Cancel any time.',
+  '/gift': 'Give 3, 6 or 12 months of Dearly Club: hand-painted letters in their mailbox every month, with an e-gift card sent by email.',
+  '/redeem': 'Received a Dearly Club gift? Enter your code and address to start your monthly letters.',
+  '/about': 'Meet Ariane Lignier, the founder of Dearly Club, and why she believes in the slow joy of letters.',
+  '/contact': 'Questions about Dearly Club? Write to Ariane, or find us on Instagram and TikTok @dearly.club.',
+  '/dearly-chat': 'The Dearly Chat: a gentle online community for letter writers, pen pals and slow rituals.',
+}
+
 export const social = [
   { label: 'Instagram', handle: '@dearly.club', href: 'https://www.instagram.com/dearly.club/' },
   { label: 'TikTok', handle: '@dearly.club', href: 'https://www.tiktok.com/@dearly.club' },
@@ -70,6 +81,7 @@ export const home = {
     emailLabel: 'Email', // verbatim ("Email*")
     consent: 'I want to subscribe to your mailing list.', // verbatim
     button: 'Subscribe', // verbatim
+    success: 'Almost there! Check your inbox and click the link to confirm your subscription.',
   },
 }
 
@@ -222,4 +234,19 @@ export const redeemPage = {
   heading: 'Someone sent you letters.',
   intro: 'Enter the code from your gift email and tell us where to send your mail. No payment needed.',
   submit: 'Redeem my gift',
+}
+
+/* Pages reached from links in newsletter emails. */
+export const newsletterPages = {
+  confirm: {
+    title: 'You’re on the list',
+    working: 'Confirming your subscription…',
+    done: 'Thank you for confirming. Letter writing tips, slow rituals and updates will find their way to your inbox.',
+  },
+  unsubscribe: {
+    title: 'Unsubscribe',
+    ask: 'Click below and we’ll stop sending you the Dearly Club newsletter. Your membership, if you have one, isn’t affected.',
+    button: 'Unsubscribe me',
+    done: 'You’ve been unsubscribed. We’re sorry to see you go — you can join again any time from our home page.',
+  },
 }

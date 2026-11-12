@@ -10,7 +10,8 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 /**
  * Mailing-list signup on the envelope-illustration band.
- * The form validates now; it is connected to the email service in Phase 8.
+ * Double opt-in: the person gets an email and is only added once they click
+ * the link in it (GDPR / CAN-SPAM friendly).
  */
 export default function Newsletter() {
   const { newsletter } = home
@@ -19,8 +20,11 @@ export default function Newsletter() {
   const [consent, setConsent] = useState(false)
   const [status, setStatus] = useState({ type: 'idle', message: '' })
 
-  const onSubmit = (e) => {
+  const [website, setWebsite] = useState('') // honeypot: hidden from people, bots fill it
+
+  const onSubmit = async (e) => {
     e.preventDefault()
+    if (status.type === 'busy') return
     if (!EMAIL.test(email.trim())) {
       setStatus({ type: 'error', message: 'Please enter a valid email address.' })
       return
@@ -29,8 +33,17 @@ export default function Newsletter() {
       setStatus({ type: 'error', message: 'Please tick the box so we can add you to the list.' })
       return
     }
-    // TODO (Phase 8): send to the newsletter provider (double opt-in).
-    setStatus({ type: 'preview', message: 'Thank you! Sign-ups go live when the new site launches.' })
+    setStatus({ type: 'busy', message: 'Subscribing…' })
+    try {
+      const { callFunction } = await import('../../lib/firebase')
+      await callFunction('subscribeNewsletter', { email: email.trim(), consent, website })
+      setStatus({ type: 'success', message: newsletter.success })
+      setEmail('')
+      setConsent(false)
+    } catch (err) {
+      const { readCallError } = await import('../../lib/callErrors')
+      setStatus({ type: 'error', message: readCallError(err).message })
+    }
   }
 
   return (
@@ -64,9 +77,15 @@ export default function Newsletter() {
                 aria-describedby={`${id}-status`}
                 className={styles.input}
               />
-              <button type="submit" className={styles.submit}>
+              <button type="submit" className={styles.submit} disabled={status.type === 'busy'}>
                 {newsletter.button}
               </button>
+            </div>
+            <div className="visually-hidden" aria-hidden="true">
+              <label>
+                Website
+                <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              </label>
             </div>
             <label className={styles.consent}>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />

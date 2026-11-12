@@ -60,6 +60,14 @@ service cloud.firestore {
         && request.resource.data.status in ['received', 'handled'];
     }
 
+    // Mailing list. Admins can read it and take someone off it (never add).
+    match /subscribers/{id} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && onlyChanges(['status', 'unsubscribedAt', 'updatedAt'])
+        && request.resource.data.status == 'unsubscribed';
+    }
+
     match /campaigns/{id} {
       allow read: if isAdmin();
     }

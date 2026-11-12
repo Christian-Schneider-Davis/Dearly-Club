@@ -13,6 +13,7 @@ const NAV = [
   { to: 'gifts', label: 'Gift cards' },
   { to: 'inbox', label: 'Inbox' },
   { to: 'email', label: 'Email members' },
+  { to: 'newsletter', label: 'Newsletter list' },
 ]
 
 export default function AdminLayout({ user }) {

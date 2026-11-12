@@ -214,21 +214,47 @@ export function contactNoticeEmail(m, adminEmail) {
   }
 }
 
-/** A message Ariane writes to members from the admin area. */
-export function memberMessageEmail({ to, firstName, subject, body }) {
+/** A message Ariane writes to members from the admin area (or to the mailing list). */
+export function memberMessageEmail({ to, firstName, subject, body, unsubscribeUrl }) {
   const greeting = firstName ? `Dear ${firstName},` : ''
   const paragraphs = body
     .split(/\n{2,}/)
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
     .join('')
+  const footText = unsubscribeUrl
+    ? `You're receiving this because you joined the Dearly Club mailing list. Unsubscribe: ${unsubscribeUrl}`
+    : `You're receiving this because you're part of Dearly Club. Manage your membership: ${siteUrl('manage')}`
+  const footHtml = unsubscribeUrl
+    ? `You're receiving this because you joined the Dearly Club mailing list. <a href="${unsubscribeUrl}" style="color:#7a1f24;">Unsubscribe</a>.`
+    : `You're receiving this because you're part of Dearly Club. <a href="${siteUrl('manage')}" style="color:#7a1f24;">Manage your membership</a>.`
   return {
     to,
     message: {
       subject,
-      text: `${greeting ? `${greeting}\n\n` : ''}${body}\n\n—\nYou're receiving this because you're part of Dearly Club. Manage your membership: ${siteUrl('manage')}`,
+      text: `${greeting ? `${greeting}\n\n` : ''}${body}\n\n—\n${footText}`,
       html: layout({
         preheader: subject,
-        body: `${greeting ? `<p>${escapeHtml(greeting)}</p>` : ''}${paragraphs}<p style="margin-top:28px;font-family:Arial,sans-serif;font-size:12px;color:#5f574f;">You're receiving this because you're part of Dearly Club. <a href="${siteUrl('manage')}" style="color:#7a1f24;">Manage your membership</a>.</p>`,
+        body: `${greeting ? `<p>${escapeHtml(greeting)}</p>` : ''}${paragraphs}<p style="margin-top:28px;font-family:Arial,sans-serif;font-size:12px;color:#5f574f;">${footHtml}</p>`,
+      }),
+      ...(unsubscribeUrl ? { headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` } } : {}),
+    },
+  }
+}
+
+/** Double opt-in: "please confirm you want to join the mailing list". */
+export function newsletterConfirmEmail({ to, confirmUrl }) {
+  return {
+    to,
+    message: {
+      subject: 'Please confirm your subscription — Dearly Club',
+      text: `Thank you for joining the Dearly Club mailing list.\n\nPlease confirm your email address by opening this link:\n${confirmUrl}\n\nIf you didn't ask to join, ignore this email and you won't hear from us.`,
+      html: layout({
+        preheader: 'One click to confirm your subscription',
+        body: `<h1 style="margin:0 0 16px;font-weight:normal;font-size:28px;text-align:center;">One last step</h1>
+<p>Thank you for joining the Dearly Club mailing list, for letter writing tips, slow rituals and updates.</p>
+<p>Please confirm this is your email address:</p>
+${button(confirmUrl, 'Confirm my subscription')}
+<p style="font-family:Arial,sans-serif;font-size:13px;color:#5f574f;">If you didn't ask to join, ignore this email and you won't hear from us.</p>`,
       }),
     },
   }
