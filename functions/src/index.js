@@ -4,53 +4,28 @@
  *  createCheckoutSession  website → saves the order + address, returns a Stripe Checkout link
  *  getCheckoutSummary     website success page → shows what was ordered
  *  stripeWebhook          Stripe → marks orders paid, tracks members, logs monthly renewals
+ *  (gifts)                see gifts.js: createGiftCheckout, redeemGift, sendScheduledGifts, monthlyGiftOrders
  *
  * Secrets (never in code): STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
  *   firebase functions:secrets:set STRIPE_SECRET_KEY
  */
-import { initializeApp } from 'firebase-admin/app'
-import { FieldValue, getFirestore } from 'firebase-admin/firestore'
-import { setGlobalOptions } from 'firebase-functions/v2'
+import { FieldValue } from 'firebase-admin/firestore'
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https'
-import { defineBoolean, defineSecret } from 'firebase-functions/params'
 import { logger } from 'firebase-functions'
-import Stripe from 'stripe'
-import { ALLOWED_ORIGINS, PLANS, TERMS_VERSION, safeReturnBase, validateCheckout } from './validate.js'
+import {
+  STRIPE_SECRET_KEY,
+  STRIPE_TAX_ENABLED,
+  STRIPE_WEBHOOK_SECRET,
+  cors,
+  db,
+  priceByLookupKey,
+  stripe,
+  toStripeAddress,
+} from './shared.js'
+import { PLANS, TERMS_VERSION, safeReturnBase, validateCheckout } from './validate.js'
+import { fulfilGiftPayment, giftSummary } from './gifts.js'
 
-initializeApp()
-const db = getFirestore()
-
-setGlobalOptions({ region: 'europe-west1', maxInstances: 10 })
-
-const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY')
-const STRIPE_WEBHOOK_SECRET = defineSecret('STRIPE_WEBHOOK_SECRET')
-// Turn off only while Stripe Tax isn't set up yet in the Stripe dashboard.
-const STRIPE_TAX_ENABLED = defineBoolean('STRIPE_TAX_ENABLED', { default: true })
-
-const cors = [...ALLOWED_ORIGINS, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/]
-
-let stripeClient
-const stripe = () => (stripeClient ??= new Stripe(STRIPE_SECRET_KEY.value()))
-
-// Price IDs looked up by their lookup keys (created by scripts/setup-stripe.js), cached per instance.
-const priceCache = new Map()
-async function priceFor(planId) {
-  const key = PLANS[planId].lookupKey
-  if (priceCache.has(key)) return priceCache.get(key)
-  const { data } = await stripe().prices.list({ lookup_keys: [key], active: true, limit: 1 })
-  if (!data[0]) throw new HttpsError('failed-precondition', `Stripe price "${key}" not found. Run the Stripe setup script.`)
-  priceCache.set(key, data[0])
-  return data[0]
-}
-
-const toStripeAddress = (s) => ({
-  line1: s.line1,
-  line2: s.line2 || undefined,
-  city: s.city,
-  postal_code: s.postalCode || undefined,
-  state: s.state || undefined,
-  country: s.country,
-})
+export { createGiftCheckout, redeemGift, sendScheduledGifts, monthlyGiftOrders } from './gifts.js'
 
 /* ------------------------------------------------------------------ */
 /* 1. Create checkout                                                  */
@@ -65,7 +40,7 @@ export const createCheckoutSession = onCall({ secrets: [STRIPE_SECRET_KEY], cors
 
   const { plan: planId, customer, shipping, consent } = value
   const plan = PLANS[planId]
-  const price = await priceFor(planId)
+  const price = await priceByLookupKey(plan.lookupKey)
   const fullName = `${customer.firstName} ${customer.lastName}`.trim()
   const address = toStripeAddress(shipping)
 
@@ -139,6 +114,7 @@ export const getCheckoutSummary = onCall({ secrets: [STRIPE_SECRET_KEY], cors },
   if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) throw new HttpsError('invalid-argument', 'Invalid session.')
 
   const session = await stripe().checkout.sessions.retrieve(sessionId)
+  if (session.metadata?.giftId) return giftSummary(session)
   const orderId = session.metadata?.orderId
   const order = orderId ? (await db.collection('orders').doc(orderId).get()).data() : null
 
@@ -194,6 +170,10 @@ async function handleEvent(event) {
   switch (event.type) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded': {
+      if (obj.metadata?.giftId) {
+        if (obj.payment_status === 'paid') await fulfilGiftPayment(obj)
+        return
+      }
       const orderId = obj.metadata?.orderId
       if (!orderId) return
       const paid = obj.payment_status === 'paid' || obj.payment_status === 'no_payment_required'
@@ -242,6 +222,10 @@ async function handleEvent(event) {
 
     case 'checkout.session.async_payment_failed':
     case 'checkout.session.expired': {
+      if (obj.metadata?.giftId) {
+        await db.collection('gifts').doc(obj.metadata.giftId).set({ status: 'abandoned' }, { merge: true })
+        return
+      }
       const orderId = obj.metadata?.orderId
       if (orderId) {
         await db

@@ -45,3 +45,44 @@ test('return links only go back to our own sites', () => {
   assert.equal(safeReturnBase('https://evil.example/'), null)
   assert.equal(safeReturnBase('not a url'), null)
 })
+
+import { normalizeCode, validateGift, validateRedeem } from '../src/validate.js'
+
+const gift = {
+  months: 6,
+  buyer: { name: 'Sofia', email: 'sofia@example.com' },
+  recipient: { name: 'Léa', email: 'LEA@example.com' },
+  message: 'Happy birthday!\nWrite back soon.',
+  consent: { terms: true },
+}
+
+test('gift: valid purchase needs no address', () => {
+  const { value, errors } = validateGift(gift, '2026-11-12')
+  assert.deepEqual(errors, {})
+  assert.equal(value.recipient.email, 'lea@example.com')
+  assert.ok(value.message.includes('\n'))
+})
+
+test('gift: rejects bad duration, past or far-future dates', () => {
+  assert.ok(validateGift({ ...gift, months: 5 }, '2026-11-12').errors.months)
+  assert.ok(validateGift({ ...gift, sendOn: '2026-11-01' }, '2026-11-12').errors.sendOn)
+  assert.ok(validateGift({ ...gift, sendOn: '2028-01-01' }, '2026-11-12').errors.sendOn)
+  assert.equal(validateGift({ ...gift, sendOn: '2026-12-24' }, '2026-11-12').value.sendOn, '2026-12-24')
+  assert.equal(validateGift({ ...gift, sendOn: '2026-11-12' }, '2026-11-12').value.sendOn, '', 'today means send now')
+})
+
+test('gift: message is capped at 300 characters', () => {
+  assert.equal(validateGift({ ...gift, message: 'x'.repeat(500) }, '2026-11-12').value.message.length, 300)
+})
+
+test('codes: tolerant of spacing and case, strict on characters', () => {
+  assert.equal(normalizeCode('dear-7k4m-q2xp'), 'DEAR-7K4M-Q2XP')
+  assert.equal(normalizeCode(' 7K4M Q2XP '), 'DEAR-7K4M-Q2XP')
+  assert.equal(normalizeCode('DEAR-0000-1111'), null, 'look-alike characters are never issued')
+  assert.equal(normalizeCode('DEAR-7K4M'), null)
+})
+
+test('redeem: needs code, person and full address', () => {
+  const { errors } = validateRedeem({ code: 'nope', customer: {}, shipping: {}, consent: {} })
+  for (const k of ['code', 'firstName', 'lastName', 'email', 'line1', 'city', 'country', 'terms']) assert.ok(errors[k], k)
+})

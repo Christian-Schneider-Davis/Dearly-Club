@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { checkoutPage as copy, formatPrice, legalNav, plans } from '../content/site'
 import { images } from '../assets/images'
+import AddressFields, { addressSchema } from '../components/forms/AddressFields'
 import Field, { CheckboxField } from '../components/forms/Field'
 import Button from '../components/ui/Button'
 import { Container, Section } from '../components/ui/Layout'
 import ResponsiveImage from '../components/ui/ResponsiveImage'
 import usePageTitle from '../hooks/usePageTitle'
-import { NO_POSTCODE, countryOptions, guessCountry } from '../lib/countries'
+import { readCallError } from '../lib/callErrors'
+import { guessCountry } from '../lib/countries'
 import { email, required, validate } from '../lib/validate'
 import styles from './Checkout.module.css'
 
@@ -42,7 +44,6 @@ export default function Checkout() {
   const isSubscription = plan.mode === 'subscription'
   const cancelled = params.get('cancelled') === '1'
 
-  const countries = useMemo(() => countryOptions(), [])
   const [values, setValues] = useState(() => {
     const saved = loadSaved()
     return saved.country ? saved : { ...saved, country: guessCountry() }
@@ -60,16 +61,11 @@ export default function Checkout() {
     }
   }, [values])
 
-  const postcodeOptional = NO_POSTCODE.has(values.country)
-
   const schema = {
     firstName: [required('first name')],
     lastName: [required('last name')],
     email: [email],
-    line1: [required('street address')],
-    city: [required('city')],
-    postalCode: postcodeOptional ? [] : [required('postcode')],
-    country: [(v) => (v ? '' : 'Please choose your country.')],
+    ...addressSchema(values, required),
     terms: [(v) => (v ? '' : 'Please accept the terms to continue.')],
     ...(isSubscription ? { renewal: [(v) => (v ? '' : 'Please confirm you understand the monthly renewal.')] } : {}),
   }
@@ -113,18 +109,12 @@ export default function Checkout() {
       })
       window.location.assign(url)
     } catch (err) {
-      const serverFields = err?.details?.fields
-      if (serverFields) {
-        setErrors(serverFields)
-        focusFirstError(serverFields)
+      const { fields, message } = readCallError(err, "We couldn't reach the payment page. Please try again in a moment.")
+      if (fields) {
+        setErrors(fields)
+        focusFirstError(fields)
       }
-      // Only show the server's wording for problems the shopper can fix.
-      const code = String(err?.code ?? '').replace('functions/', '')
-      const friendly = code === 'invalid-argument' && err?.message
-      setStatus({
-        state: 'error',
-        message: friendly || "We couldn't reach the payment page. Please try again in a moment.",
-      })
+      setStatus({ state: 'error', message })
     }
   }
 
@@ -176,29 +166,7 @@ export default function Checkout() {
 
             <fieldset className={styles.group}>
               <legend>Shipping address</legend>
-              <Field as="select" label="Country" name="country" autoComplete="country" required value={values.country} onChange={set('country')} error={errors.country}>
-                <option value="">Choose your country…</option>
-                {countries.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-                ))}
-              </Field>
-              <Field label="Street address" name="line1" autoComplete="address-line1" required placeholder="Street and number" value={values.line1} onChange={set('line1')} error={errors.line1} />
-              <Field label="Apartment, suite, etc. (optional)" name="line2" autoComplete="address-line2" value={values.line2} onChange={set('line2')} />
-              <div className={styles.row3}>
-                <Field label="City" name="city" autoComplete="address-level2" required value={values.city} onChange={set('city')} error={errors.city} />
-                <Field
-                  label={postcodeOptional ? 'Postcode (optional)' : 'Postcode / ZIP'}
-                  name="postalCode"
-                  autoComplete="postal-code"
-                  required={!postcodeOptional}
-                  value={values.postalCode}
-                  onChange={set('postalCode')}
-                  error={errors.postalCode}
-                />
-                <Field label="State / region (optional)" name="state" autoComplete="address-level1" value={values.state} onChange={set('state')} />
-              </div>
+              <AddressFields values={values} errors={errors} onChange={set} />
             </fieldset>
 
             <fieldset className={styles.group}>

@@ -204,3 +204,21 @@ export const checkoutPage = {
   stripeNote: 'Payment is handled by Stripe. Card, Apple Pay and Google Pay accepted.',
   cancelledNote: "Your payment wasn't completed, and you haven't been charged. Your details are still here whenever you're ready.",
 }
+
+export const giftPage = {
+  eyebrow: 'Gift a membership',
+  heading: 'Send months of letters to someone dear.',
+  intro: 'Paid once, no renewal. They receive a beautiful e-gift card by email and add their own address when they redeem it.',
+  durationLabel: 'Duration',
+  submit: 'Buy gift',
+  terms: 'I agree to the Terms & Conditions.',
+  cancelledNote: "Your payment wasn't completed, and you haven't been charged. Your gift details are still here.",
+  messageMax: 300,
+}
+
+export const redeemPage = {
+  eyebrow: 'Redeem a gift',
+  heading: 'Someone sent you letters.',
+  intro: 'Enter the code from your gift email and tell us where to send your mail. No payment needed.',
+  submit: 'Redeem my gift',
+}

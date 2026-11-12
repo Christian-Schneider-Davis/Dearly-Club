@@ -7,6 +7,9 @@ import Contact from './pages/Contact'
 import Checkout from './pages/Checkout'
 import CheckoutSuccess from './pages/CheckoutSuccess'
 import ManageMembership from './pages/ManageMembership'
+import Gift from './pages/Gift'
+import GiftSuccess from './pages/GiftSuccess'
+import Redeem from './pages/Redeem'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
@@ -24,8 +27,9 @@ export default function App() {
         <Route path="checkout" element={<Checkout />} />
         <Route path="checkout/success" element={<CheckoutSuccess />} />
         <Route path="manage" element={<ManageMembership />} />
-        <Route path="gift" element={<PagePlaceholder title="Gift a Membership" phase={5} />} />
-        <Route path="redeem" element={<PagePlaceholder title="Redeem a Gift" phase={5} />} />
+        <Route path="gift" element={<Gift />} />
+        <Route path="gift/success" element={<GiftSuccess />} />
+        <Route path="redeem" element={<Redeem />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="dearly-chat" element={<PagePlaceholder title="The Dearly Chat" phase={9} />} />

@@ -85,3 +85,83 @@ export function safeReturnBase(returnBase) {
   const path = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`
   return `${url.origin}${path}`
 }
+
+/* ------------------------------------------------------------------ */
+/* Gifts                                                               */
+/* ------------------------------------------------------------------ */
+
+export const GIFTS = {
+  3: { lookupKey: 'dearly_gift_3m', months: 3 },
+  6: { lookupKey: 'dearly_gift_6m', months: 6 },
+  12: { lookupKey: 'dearly_gift_12m', months: 12 },
+}
+
+export const MESSAGE_MAX = 300
+
+/** 'YYYY-MM-DD' for a Date in Paris time. */
+export const parisDate = (d = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
+
+/** Validates a gift purchase. No home address: only emails are needed. */
+export function validateGift(input = {}, today = parisDate()) {
+  const errors = {}
+  const months = Number(input.months)
+  if (!GIFTS[months]) errors.months = 'Choose 3, 6 or 12 months.'
+
+  const b = input.buyer ?? {}
+  const r = input.recipient ?? {}
+  const buyer = { name: clean(b.name, 80), email: clean(b.email, 254).toLowerCase() }
+  const recipient = { name: clean(r.name, 80), email: clean(r.email, 254).toLowerCase() }
+  // Keep line breaks in the message, but tidy everything else.
+  const message = typeof input.message === 'string' ? input.message.replace(/\r/g, '').trim().slice(0, MESSAGE_MAX) : ''
+
+  if (!buyer.name) errors.buyerName = 'Your name is required.'
+  if (!EMAIL.test(buyer.email)) errors.buyerEmail = 'A valid email is required.'
+  if (!recipient.name) errors.recipientName = "Recipient's name is required."
+  if (!EMAIL.test(recipient.email)) errors.recipientEmail = 'A valid email is required.'
+
+  let sendOn = clean(input.sendOn, 10)
+  if (sendOn) {
+    const maxDate = new Date(`${today}T12:00:00Z`)
+    maxDate.setUTCFullYear(maxDate.getUTCFullYear() + 1)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(sendOn) || Number.isNaN(Date.parse(sendOn))) errors.sendOn = 'Choose a valid date.'
+    else if (sendOn < today) errors.sendOn = 'The send date cannot be in the past.'
+    else if (sendOn > maxDate.toISOString().slice(0, 10)) errors.sendOn = 'Choose a date within the next year.'
+    if (sendOn === today) sendOn = ''
+  }
+
+  if (input.consent?.terms !== true) errors.terms = 'You must accept the terms.'
+
+  return { value: { months, buyer, recipient, message, sendOn }, errors }
+}
+
+/* Gift codes: DEAR-XXXX-XXXX from an alphabet without look-alike characters (no 0/O, 1/I/L). */
+export const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
+
+export function normalizeCode(raw) {
+  const chars = String(raw ?? '')
+    .toUpperCase()
+    .replace(/^\s*DEAR/, '')
+    .replace(/[^A-Z0-9]/g, '')
+  if (chars.length !== 8 || [...chars].some((c) => !CODE_ALPHABET.includes(c))) return null
+  return `DEAR-${chars.slice(0, 4)}-${chars.slice(4)}`
+}
+
+/** Validates a redemption: the code plus the recipient's name, email and shipping address. */
+export function validateRedeem(input = {}) {
+  const errors = {}
+  const code = normalizeCode(input.code)
+  if (!code) errors.code = 'Please check your gift code (it looks like DEAR-XXXX-XXXX).'
+
+  // Reuse the checkout checks for person + address.
+  const { value, errors: base } = validateCheckout({
+    plan: 'guest',
+    customer: input.customer,
+    shipping: input.shipping,
+    consent: input.consent,
+  })
+  for (const k of ['firstName', 'lastName', 'email', 'line1', 'city', 'postalCode', 'country', 'terms']) {
+    if (base[k]) errors[k] = base[k]
+  }
+  return { value: { code, customer: value.customer, shipping: value.shipping }, errors }
+}

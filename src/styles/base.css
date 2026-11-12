@@ -203,3 +203,9 @@ a:hover {
   top: var(--space-4);
   color: var(--on-dark);
 }
+
+/* A coloured page band that runs up behind the fixed header (no cream strip on top). */
+.under-header {
+  margin-top: calc(var(--header-h) * -1);
+  padding-top: calc(var(--header-h) + var(--space-6)) !important;
+}

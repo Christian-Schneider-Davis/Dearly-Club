@@ -1,0 +1,171 @@
+.page {
+  padding-top: var(--space-6);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.title {
+  font-size: clamp(2.5rem, 1.8rem + 2.6vw, 3.75rem);
+  line-height: 1.04;
+}
+
+.intro {
+  margin-top: var(--space-4);
+  max-width: 34rem;
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+}
+
+.notice {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+}
+
+.legend {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.durations,
+.group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.group {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.durationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.duration {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  padding: var(--space-5) var(--space-3);
+  border: 1px solid var(--color-taupe);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.duration:hover {
+  border-color: var(--color-ink);
+}
+
+.duration[data-checked='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--on-dark);
+}
+
+.duration:has(.radio:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+
+.radio {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.durationMonths {
+  font-family: var(--font-display);
+  font-size: 1.625rem;
+  line-height: 1.1;
+}
+
+.durationPrice {
+  font-size: var(--text-base);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-5);
+}
+
+.req {
+  color: var(--accent);
+}
+
+.error {
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: #fdf6f4;
+  color: var(--color-error);
+}
+
+.fine {
+  margin-top: calc(var(--space-3) * -1);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.previewCol {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-4));
+  display: grid;
+  gap: var(--space-6);
+  padding-top: var(--space-6);
+}
+
+@media (max-width: 960px) {
+  .previewCol {
+    position: static;
+    padding-top: 0;
+  }
+  .how,
+  .redeem {
+    display: none;
+  }
+}
+
+.how {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0 auto;
+  max-width: 28rem;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+}
+
+.redeem {
+  text-align: center;
+  font-size: var(--text-sm);
+}
