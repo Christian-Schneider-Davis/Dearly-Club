@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { brand, legalNav, mainNav, social } from '../../content/site'
 import { Container } from '../ui/Layout'
+import Logo from '../ui/Logo'
 import styles from './SiteLayout.module.css'
 
 /** Jump to the top of the page on every route change (unless linking to an #anchor). */
@@ -26,8 +27,8 @@ export default function SiteLayout() {
       </a>
       <header className={styles.header}>
         <Container className={styles.headerInner}>
-          <Link to="/" className={styles.wordmark}>
-            {brand.name}
+          <Link to="/" className={styles.wordmark} aria-label={`${brand.name} home`}>
+            <Logo size={64} />
           </Link>
           <nav aria-label="Main">
             <ul className={styles.nav}>
@@ -49,7 +50,7 @@ export default function SiteLayout() {
 
       <footer className={styles.footer}>
         <Container className={styles.footerInner}>
-          <p className={styles.footerBrand}>{brand.name}</p>
+          <Logo tone="cream" size={96} />
           <ul className={styles.footerLinks}>
             {social.map((s) => (
               <li key={s.href}>
