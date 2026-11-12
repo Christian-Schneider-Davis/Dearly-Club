@@ -1,0 +1,24 @@
+{
+  "name": "dearly-club",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dearly Club — a thoughtful monthly mail club. React + Vite site.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/jost": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8",
+    "vite-imagetools": "^12.0.2"
+  }
+}
