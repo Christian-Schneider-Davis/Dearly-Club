@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import SiteLayout from './components/layout/SiteLayout'
 import Home from './pages/Home'
+import About from './pages/About'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
@@ -18,7 +19,7 @@ export default function App() {
         <Route path="checkout" element={<PagePlaceholder title="Checkout" phase={4} />} />
         <Route path="gift" element={<PagePlaceholder title="Gift a Membership" phase={5} />} />
         <Route path="redeem" element={<PagePlaceholder title="Redeem a Gift" phase={5} />} />
-        <Route path="about" element={<PagePlaceholder title="About" phase={2} />} />
+        <Route path="about" element={<About />} />
         <Route path="contact" element={<PagePlaceholder title="Contact" phase={3} />} />
         <Route path="dearly-chat" element={<PagePlaceholder title="The Dearly Chat" phase={9} />} />
         <Route path="account" element={<PagePlaceholder title="Your Account" phase={9} />} />

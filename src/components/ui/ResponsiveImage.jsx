@@ -18,7 +18,7 @@ export default function ResponsiveImage({
   const fallbackType = Object.keys(sources).find((t) => t !== 'webp')
 
   return (
-    <picture className={className}>
+    <picture className={className} style={{ display: 'block', width: '100%', height: '100%' }}>
       {sources.webp && <source type="image/webp" srcSet={sources.webp} sizes={sizes} />}
       {fallbackType && <source type={`image/${fallbackType === 'jpg' ? 'jpeg' : fallbackType}`} srcSet={sources[fallbackType]} sizes={sizes} />}
       <img
