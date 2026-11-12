@@ -15,6 +15,8 @@ import EmailMembers from './pages/EmailMembers'
 import Newsletter from './pages/Newsletter'
 import Accounts from './pages/Accounts'
 import Moderation from './pages/Moderation'
+import PenPals from './pages/PenPals'
+import Rituals from './pages/Rituals'
 import styles from './admin.module.css'
 
 /** Admin area: sign-in, admin check, then the dashboard pages. */
@@ -69,6 +71,8 @@ export default function AdminApp() {
         <Route path="newsletter" element={<Newsletter />} />
         <Route path="accounts" element={<Accounts />} />
         <Route path="moderation" element={<Moderation />} />
+        <Route path="pen-pals" element={<PenPals />} />
+        <Route path="rituals" element={<Rituals />} />
         <Route path="*" element={<Navigate to="" replace />} />
       </Route>
     </Routes>

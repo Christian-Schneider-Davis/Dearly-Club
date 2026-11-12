@@ -19,6 +19,7 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions'
 import { requireAdmin } from './admin.js'
 import { eraseMessagesBy } from './chat.js'
+import { cleanUpPenPals } from './penpals.js'
 import { cors, db } from './shared.js'
 import { GUIDELINES_VERSION, tierFor, validateProfile } from './validate.js'
 
@@ -93,6 +94,7 @@ export const deleteAccount = onCall({ cors }, async (request) => {
   if (request.data?.confirm !== 'DELETE') throw new HttpsError('invalid-argument', 'Type DELETE to confirm.')
   // Their chat messages are blanked (the conversation around them stays readable).
   await eraseMessagesBy(uid)
+  await cleanUpPenPals(uid)
   await Promise.all([db.collection('profiles').doc(uid).delete(), db.collection('users').doc(uid).delete()])
   await getAuth().deleteUser(uid)
   logger.info('Account deleted', { uid })

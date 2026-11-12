@@ -38,7 +38,6 @@ export const chatPage = {
     { title: 'Say hello', text: 'Join the conversation, and if you’re a member, ask for a pen pal.' },
   ],
   safety: 'For adults (18+). Everyone agrees to our Community Guidelines, and every message can be reported.',
-  opening: 'Opening soon',
 }
 
 export const accountCopy = {
@@ -56,6 +55,37 @@ export const rooms = {
     access: 'free',
     intro: 'Our group chat for everyone. Say hello, share what you’re writing, and swap ideas for slow, thoughtful living.',
   },
+  'slow-rituals': {
+    name: 'The Slow Rituals circle',
+    access: 'member',
+    intro: 'Talk about this month’s ritual with other members.',
+  },
+}
+
+export const penPalCopy = {
+  title: 'Pen Pal Match & Chat',
+  intro:
+    'Tell us a little about the pen pal you’d like and we’ll match you with another Dearly Member. You’ll get a private chat to say hello — and if you both want to, you can exchange addresses and write real letters.',
+  safety: 'Your home address is never shown unless you both choose to share it. You can end a match, report or block at any time.',
+  waitingTitle: 'We’re finding your pen pal',
+  waitingText: 'We’ll email you as soon as we find someone who fits. Most people are matched within a few days.',
+  languages: ['English', 'French', 'Spanish', 'German', 'Italian', 'Portuguese', 'Dutch', 'Other'],
+  regions: {
+    anywhere: 'Anywhere in the world',
+    abroad: 'Someone in another country',
+    'same-country': 'Someone in my country',
+  },
+  formats: {
+    both: 'Letters by post and online chat',
+    letters: 'Mostly letters by post',
+    chat: 'Online chat only',
+  },
+}
+
+export const ritualsCopy = {
+  title: 'Slow Rituals',
+  intro: 'Small practices to recenter and reconnect with yourself — a new one each month, written by Ariane.',
+  empty: 'The first ritual is on its way.',
 }
 
 export const chatCopy = {

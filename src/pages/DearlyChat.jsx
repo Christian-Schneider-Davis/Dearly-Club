@@ -3,7 +3,7 @@ import Reveal from '../components/motion/Reveal'
 import Button from '../components/ui/Button'
 import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import ResponsiveImage from '../components/ui/ResponsiveImage'
-import { chatPage as copy, rooms } from '../content/community'
+import { chatPage as copy } from '../content/community'
 import { clubs } from '../content/site'
 import usePageTitle from '../hooks/usePageTitle'
 import styles from './DearlyChat.module.css'
@@ -44,13 +44,9 @@ export default function DearlyChat() {
                 <p className={c.access === 'free' ? styles.free : styles.members}>{c.access === 'free' ? 'Free' : 'Members'}</p>
                 <h3 className={styles.clubName}>{c.name}</h3>
                 <p>{c.blurb}</p>
-                {c.room && rooms[c.room] ? (
-                  <Button to={`/dearly-chat/${c.room}`} variant="outline">
-                    Open the chat
-                  </Button>
-                ) : (
-                  <p className={styles.soon}>{copy.opening}</p>
-                )}
+                <Button to={c.path} variant="outline">
+                  {c.access === 'free' ? 'Open the chat' : 'Members: go in'}
+                </Button>
               </Reveal>
             ))}
           </div>

@@ -23,7 +23,14 @@ function dayLabel(d) {
   return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', ...(d.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) })
 }
 
-export default function ChatRoom({ room, info, user, profile, account, onAccountChange }) {
+// Pen-pal chats ("pp_<id>") live under penpals/<id>/messages; group rooms under rooms/<room>/messages.
+const messagesCollection = (room) => (room.startsWith('pp_') ? collection(db, 'penpals', room.slice(3), 'messages') : collection(db, 'rooms', room, 'messages'))
+
+/**
+ * A live chat. info: { name, access, label? }. readOnly: a sentence shown instead of the message box.
+ * className lets a page size it (e.g. next to a side panel).
+ */
+export default function ChatRoom({ room, info, user, profile, account, onAccountChange, readOnly, className = '', embedded = false }) {
   const [count, setCount] = useState(PAGE)
   const [msgs, setMsgs] = useState([])
   const [hasMore, setHasMore] = useState(false)
@@ -41,7 +48,7 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
 
   // Live messages (newest `count`, shown oldest → newest).
   useEffect(() => {
-    const q = query(collection(db, 'rooms', room, 'messages'), orderBy('createdAt', 'desc'), limit(count))
+    const q = query(messagesCollection(room), orderBy('createdAt', 'desc'), limit(count))
     return onSnapshot(
       q,
       (snap) => {
@@ -137,13 +144,13 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
   }, [msgs, pending, blocked])
 
   return (
-    <div className={styles.room}>
+    <div className={`${styles.room} ${embedded ? styles.embedded : ''} ${className}`}>
       <header className={styles.roomHead}>
         <div>
           <p className={styles.eyebrow}>
-            <Link to="/dearly-chat">The Dearly Chat</Link> · {info.access === 'free' ? 'Free club' : 'Members’ club'}
+            <Link to="/dearly-chat">The Dearly Chat</Link> · {info.label ?? (info.access === 'free' ? 'Free club' : 'Members’ club')}
           </p>
-          <h1 className={styles.roomTitle}>{info.name}</h1>
+          {embedded ? <h2 className={styles.roomTitle}>{info.name}</h2> : <h1 className={styles.roomTitle}>{info.name}</h1>}
         </div>
         <Link to="/account" className={styles.me} aria-label="Your account">
           {profile.displayName}
@@ -151,7 +158,7 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
       </header>
 
       <p className={styles.welcome}>
-        {chatCopy.welcomeNote} <Link to="/legal/community-guidelines">Community Guidelines</Link>
+        {info.welcome ?? chatCopy.welcomeNote} <Link to="/legal/community-guidelines">Community Guidelines</Link>
       </p>
 
       <div className={styles.listWrap}>
@@ -199,7 +206,7 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
         </p>
       )}
 
-      <Composer onSend={send} />
+      {readOnly ? <p className={styles.readOnly}>{readOnly}</p> : <Composer onSend={send} />}
 
       {reporting && <ReportDialog room={room} message={reporting} onClose={() => setReporting(null)} onDone={() => setNotice('Thank you — we’ll take a look.')} />}
       {viewing && <ProfileCard uid={viewing} onClose={() => setViewing(null)} />}

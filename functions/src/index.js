@@ -32,6 +32,7 @@ export { submitContact, adminSendEmail, adminResendGift } from './admin.js'
 export { subscribeNewsletter, confirmNewsletter, unsubscribeNewsletter, adminImportSubscribers } from './newsletter.js'
 export { saveProfile, refreshMembership, deleteAccount, syncTierOnMember, syncTierOnGift, adminSetSuspended } from './community.js'
 export { postMessage, deleteMessage, reportMessage, blockMember, adminModerate } from './chat.js'
+export { requestPenPal, cancelPenPalRequest, endPenPal, sharePenPalAddress, matchWaitingPenPals, adminMatchPenPals, adminEndPenPal } from './penpals.js'
 
 /* ------------------------------------------------------------------ */
 /* 1. Create checkout                                                  */

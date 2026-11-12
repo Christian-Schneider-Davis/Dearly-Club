@@ -438,3 +438,16 @@
   padding: 0.15rem 0.7rem;
   font-size: var(--text-sm);
 }
+
+.embedded {
+  height: min(70vh, 44rem);
+  max-width: none;
+}
+.readOnly {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-cream);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}

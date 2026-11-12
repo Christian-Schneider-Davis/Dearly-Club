@@ -340,7 +340,7 @@ export function tierFor({ members = [], gifts = [] }, now = new Date()) {
 /* Chat                                                                */
 /* ------------------------------------------------------------------ */
 // Chat rooms and who may use them. Phase 11 adds the members' rooms.
-export const ROOMS = { 'the-dearly-club': 'free' }
+export const ROOMS = { 'the-dearly-club': 'free', 'slow-rituals': 'member' }
 export const MESSAGE_LIMIT = 2000
 export const REPORT_REASONS = { unkind: 'Unkind or harassing', spam: 'Spam or selling', personal: 'Shares personal information', sexual: 'Sexual or inappropriate', other: 'Something else' }
 export const AUTO_HIDE_REPORTS = 3
@@ -350,9 +350,73 @@ export function validateChatMessage(input = {}) {
   // Keep line breaks (max 2 blank lines in a row), trim the ends.
   const text = typeof input.text === 'string' ? input.text.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim().slice(0, MESSAGE_LIMIT) : ''
   const errors = {}
-  if (!ROOMS[room]) errors.room = 'Unknown chat.'
+  if (!ROOMS[room] && !isPenPalRoom(room)) errors.room = 'Unknown chat.'
   if (!text) errors.text = 'Write a message first.'
   return { value: { room, text }, errors }
 }
 
 export const canUseRoom = (room, tier) => ROOMS[room] === 'free' || (ROOMS[room] === 'member' && tier === 'member')
+
+/* ------------------------------------------------------------------ */
+/* Pen Pal Match                                                       */
+/* ------------------------------------------------------------------ */
+// Private pen-pal chats use the room id "pp_<matchId>".
+export const isPenPalRoom = (room) => /^pp_[A-Za-z0-9]{10,40}$/.test(room)
+/** Where a room's messages live in Firestore. */
+export const messagesPath = (room) => (isPenPalRoom(room) ? ['penpals', room.slice(3), 'messages'] : ['rooms', room, 'messages'])
+
+export const PEN_LANGUAGES = ['English', 'French', 'Spanish', 'German', 'Italian', 'Portuguese', 'Dutch', 'Other']
+export const PEN_REGIONS = ['anywhere', 'abroad', 'same-country']
+export const PEN_FORMATS = ['letters', 'chat', 'both']
+
+export function validatePenPalRequest(input = {}) {
+  const errors = {}
+  const languages = Array.isArray(input.languages) ? [...new Set(input.languages.filter((l) => PEN_LANGUAGES.includes(l)))] : []
+  const value = {
+    languages,
+    region: PEN_REGIONS.includes(input.region) ? input.region : 'anywhere',
+    format: PEN_FORMATS.includes(input.format) ? input.format : 'both',
+    note: longText(input.note, 300),
+  }
+  if (!languages.length) errors.languages = 'Choose at least one language you can write in.'
+  return { value, errors }
+}
+
+/**
+ * Can these two waiting requests be matched?
+ * a, b: { uid, country, languages, region, format, blocked: [], partners: [] }
+ */
+export function penPalCompatible(a, b) {
+  if (a.uid === b.uid) return false
+  if ((a.blocked ?? []).includes(b.uid) || (b.blocked ?? []).includes(a.uid)) return false
+  if ((a.partners ?? []).includes(b.uid) || (b.partners ?? []).includes(a.uid)) return false
+  if (!a.languages.some((l) => b.languages.includes(l))) return false
+  if ((a.format === 'letters' && b.format === 'chat') || (a.format === 'chat' && b.format === 'letters')) return false
+  const sameCountry = Boolean(a.country) && a.country === b.country
+  const knownBoth = Boolean(a.country && b.country)
+  for (const [x] of [[a], [b]]) {
+    if (x.region === 'abroad' && (!knownBoth || sameCountry)) return false
+    if (x.region === 'same-country' && !sameCountry) return false
+  }
+  return true
+}
+
+/** Checks a postal address (same rules as checkout). */
+export function validateAddress(a = {}) {
+  const errors = {}
+  const value = {
+    name: clean(a.name, 120),
+    line1: clean(a.line1),
+    line2: clean(a.line2),
+    city: clean(a.city, 120),
+    postalCode: clean(a.postalCode, 20).toUpperCase(),
+    state: clean(a.state, 120),
+    country: clean(a.country, 2).toUpperCase(),
+  }
+  if (!value.name) errors.name = 'Name for the envelope is required.'
+  if (!value.line1) errors.line1 = 'Street address is required.'
+  if (!value.city) errors.city = 'City is required.'
+  if (!/^[A-Z]{2}$/.test(value.country)) errors.country = 'Country is required.'
+  if (!value.postalCode && !NO_POSTCODE.has(value.country)) errors.postalCode = 'Postcode is required.'
+  return { value, errors }
+}

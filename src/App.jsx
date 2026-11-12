@@ -23,6 +23,9 @@ const AdminApp = lazy(() => import('./admin/AdminApp'))
 // Same for the community account area (Firebase Auth + Firestore).
 const AccountApp = lazy(() => import('./account/AccountApp'))
 const ChatApp = lazy(() => import('./chat/ChatApp'))
+const PenPals = lazy(() => import('./chat/PenPals'))
+const PenPalChat = lazy(() => import('./chat/PenPalChat'))
+const SlowRituals = lazy(() => import('./chat/SlowRituals'))
 
 /*
  * Every page of the approved site map. Placeholders are swapped for the real
@@ -43,14 +46,22 @@ export default function App() {
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="dearly-chat" element={<DearlyChat />} />
-        <Route
-          path="dearly-chat/:room"
-          element={
-            <Suspense fallback={null}>
-              <ChatApp />
-            </Suspense>
-          }
-        />
+        {[
+          ['dearly-chat/pen-pals', PenPals],
+          ['dearly-chat/pen-pals/:matchId', PenPalChat],
+          ['dearly-chat/slow-rituals', SlowRituals],
+          ['dearly-chat/:room', ChatApp],
+        ].map(([path, Page]) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <Suspense fallback={null}>
+                <Page />
+              </Suspense>
+            }
+          />
+        ))}
         <Route
           path="account/*"
           element={

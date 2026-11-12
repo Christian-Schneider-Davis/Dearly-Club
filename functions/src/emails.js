@@ -259,3 +259,24 @@ ${button(confirmUrl, 'Confirm my subscription')}
     },
   }
 }
+
+/** "You've been matched with a pen pal." */
+export function penPalMatchedEmail({ to, firstName, partnerName, matchId }) {
+  const url = siteUrl(`dearly-chat/pen-pals/${matchId}`)
+  return {
+    to,
+    message: {
+      subject: `You have a pen pal: ${partnerName} — Dearly Club`,
+      text: `Dear ${firstName || 'friend'},\n\nWe’ve matched you with a pen pal: ${partnerName}. Say hello in your private pen-pal chat:\n${url}\n\nYour home address is only shared if you both choose to.\n\nDearly,\nAriane`,
+      html: layout({
+        preheader: `Say hello to ${partnerName}`,
+        body: `<h1 style="margin:0 0 16px;font-weight:normal;font-size:28px;text-align:center;">You have a pen pal</h1>
+<p>Dear ${escapeHtml(firstName || 'friend')},</p>
+<p>We’ve matched you with <strong>${escapeHtml(partnerName)}</strong>. Start with a hello in your private pen-pal chat — and when you’re both ready, you can choose to exchange addresses and write real letters.</p>
+${button(url, 'Say hello')}
+<p style="font-family:Arial,sans-serif;font-size:13px;color:#5f574f;">Your home address is only shared if you both choose to. You can end a pen-pal match at any time.</p>
+<p>Dearly,<br>Ariane</p>`,
+      }),
+    },
+  }
+}

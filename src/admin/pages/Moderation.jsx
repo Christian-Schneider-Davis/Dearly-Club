@@ -61,7 +61,7 @@ export default function Moderation() {
               <li key={r.id} className={`${styles.card} ${r.status === 'open' ? styles.cardUrgent : ''}`}>
                 <div className={styles.cardHead}>
                   <div>
-                    <strong>{r.authorName}</strong> <span className={styles.muted}>in {rooms[r.room]?.name ?? r.room} · {fmtDate(r.messageAt, true)}</span>
+                    <strong>{r.authorName}</strong> <span className={styles.muted}>in {rooms[r.room]?.name ?? (r.room?.startsWith('pp_') ? 'a private pen-pal chat' : r.room)} · {fmtDate(r.messageAt, true)}</span>
                   </div>
                   <div className={styles.cardMeta}>
                     {r.count} report{r.count === 1 ? '' : 's'} <Badge status={r.status === 'open' ? 'received' : r.status === 'actioned' ? 'failed' : 'handled'} label={r.status === 'actioned' ? 'hidden' : r.status} />

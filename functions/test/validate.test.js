@@ -173,3 +173,39 @@ test('chat: free room open to all, member rooms to members', () => {
   assert.equal(canUseRoom('the-dearly-club', 'free'), true)
   assert.equal(canUseRoom('nope', 'member'), false)
 })
+
+import { isPenPalRoom, messagesPath, penPalCompatible, validateAddress, validatePenPalRequest } from '../src/validate.js'
+
+test('pen pal rooms map to their own message path', () => {
+  assert.equal(isPenPalRoom('pp_abcdefghij12'), true)
+  assert.equal(isPenPalRoom('pp_../x'), false)
+  assert.deepEqual(messagesPath('pp_abcdefghij12'), ['penpals', 'abcdefghij12', 'messages'])
+  assert.deepEqual(messagesPath('the-dearly-club'), ['rooms', 'the-dearly-club', 'messages'])
+})
+
+test('pen pal request needs a language; bad options fall back', () => {
+  assert.ok(validatePenPalRequest({}).errors.languages)
+  const { value } = validatePenPalRequest({ languages: ['French', 'Klingon'], region: 'moon', format: 'pigeon' })
+  assert.deepEqual(value, { languages: ['French'], region: 'anywhere', format: 'both', note: '' })
+})
+
+test('pen pal matching respects blocks, history, languages, format and region', () => {
+  const base = (o) => ({ uid: 'a', country: 'FR', languages: ['English'], region: 'anywhere', format: 'both', blocked: [], partners: [], ...o })
+  const a = base({})
+  assert.equal(penPalCompatible(a, base({ uid: 'b', country: 'US' })), true)
+  assert.equal(penPalCompatible(a, base({ uid: 'a' })), false)
+  assert.equal(penPalCompatible(a, base({ uid: 'b', blocked: ['a'] })), false)
+  assert.equal(penPalCompatible(base({ partners: ['b'] }), base({ uid: 'b' })), false)
+  assert.equal(penPalCompatible(a, base({ uid: 'b', languages: ['French'] })), false)
+  assert.equal(penPalCompatible(base({ format: 'letters' }), base({ uid: 'b', format: 'chat' })), false)
+  assert.equal(penPalCompatible(base({ region: 'abroad' }), base({ uid: 'b', country: 'FR' })), false)
+  assert.equal(penPalCompatible(base({ region: 'abroad' }), base({ uid: 'b', country: '' })), false)
+  assert.equal(penPalCompatible(base({ region: 'same-country' }), base({ uid: 'b', country: 'FR' })), true)
+  assert.equal(penPalCompatible(a, base({ uid: 'b', country: 'DE', region: 'same-country' })), false)
+})
+
+test('address for pen pals uses checkout rules', () => {
+  assert.ok(validateAddress({}).errors.name)
+  assert.deepEqual(validateAddress({ name: 'Léa', line1: '1 Rue', city: 'Paris', postalCode: '75001', country: 'fr' }).errors, {})
+  assert.deepEqual(validateAddress({ name: 'A', line1: '1 St', city: 'Dublin', country: 'IE' }).errors, {})
+})

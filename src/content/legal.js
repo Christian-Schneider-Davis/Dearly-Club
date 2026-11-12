@@ -9,19 +9,21 @@
 
 export const legalEntity = {
   tradingName: 'Dearly Club',
-  legalName: '[Legal business name]',
-  address: '[Business address]',
-  country: '[Country where the business is registered]',
-  email: '[Contact email]',
-  vat: '[VAT number, if registered]',
-  supervisoryAuthority: '[Data protection authority of that country, e.g. CNIL (France) or AEPD (Spain)]',
+  legalName: 'Dearly Club',
+  // Left empty on purpose for now. Spanish law (LSSI art. 10) and EU consumer law
+  // expect a postal address and tax ID (NIF) for online sellers — see README.
+  address: '',
+  country: 'Spain',
+  email: 'ariane.lignier@icloud.com',
+  vat: '',
+  supervisoryAuthority: 'the Agencia Española de Protección de Datos (AEPD), www.aepd.es',
 }
 
 export const LEGAL_UPDATED = '12 November 2026'
 export const draft = true
 
 const e = legalEntity
-const whoWeAre = `Dearly Club is run by ${e.legalName}, ${e.address}, ${e.country} (VAT: ${e.vat}). You can reach us at ${e.email} or through the contact form on this website.`
+const whoWeAre = `Dearly Club is run by ${[e.legalName, e.address, e.country].filter(Boolean).join(', ')}${e.vat ? ` (VAT: ${e.vat})` : ''}. You can reach us at ${e.email} or through the contact form on this website.`
 
 export const legalDocs = {
   terms: {
@@ -169,7 +171,7 @@ export const legalDocs = {
           '(Complete and return this form only if you wish to withdraw from the contract.)',
           {
             list: [
-              `To: ${e.legalName}, ${e.address}, ${e.email}`,
+              `To: ${[e.legalName, e.address, e.email].filter(Boolean).join(', ')}`,
               'I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale of the following goods (*)/for the provision of the following service (*),',
               'Ordered on (*)/received on (*),',
               'Name of consumer(s),',
@@ -266,7 +268,7 @@ export const legalDocs = {
       },
       { heading: 'Cookies', body: ['See our Cookie Policy for what this website stores in your browser and how to change your choice.'] },
       { heading: 'Children', body: ['Dearly Club is not intended for children under 16, and we do not knowingly collect their data.'] },
-      { heading: 'Security', body: ['Your data is stored in a locked-down database that only our own server code can read or write, all connections are encrypted, and payment details are handled by Stripe.'] },
+      { heading: 'Security', body: ['Your data is stored in a database protected by strict access rules: each person can only see what they are allowed to (for example, your email and address are never visible to other members), changes go through our own server code, all connections are encrypted, and payment details are handled by Stripe.'] },
       { heading: 'Changes', body: ['If we change this policy, we will update the date at the top, and tell members by email about important changes.'] },
     ],
   },
@@ -326,6 +328,7 @@ export const legalDocs = {
               'Don’t share anyone else’s personal information, including messages from private chats.',
               'Only share your home address through Pen Pal Match, after you and your pen pal have both agreed.',
               'Never ask other members for money, passwords or payment details.',
+              'Pen-pal chats are private between the two of you. We only read a private message if it is reported to us.',
             ],
           },
         ],

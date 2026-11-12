@@ -15,9 +15,13 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import { requireAdmin } from './admin.js'
 import { cors, db } from './shared.js'
-import { AUTO_HIDE_REPORTS, REPORT_REASONS, canUseRoom, validateChatMessage } from './validate.js'
+import { AUTO_HIDE_REPORTS, REPORT_REASONS, canUseRoom, isPenPalRoom, messagesPath, validateChatMessage } from './validate.js'
 
-const msgRef = (room, id) => db.collection('rooms').doc(room).collection('messages').doc(id)
+const messages = (room) => {
+  const [a, b, c] = messagesPath(room)
+  return db.collection(a).doc(b).collection(c)
+}
+const msgRef = (room, id) => messages(room).doc(id)
 const key = (room, id) => `${room}__${id}`
 
 /** Signed-in, confirmed, has a profile, not paused. Returns uid + profile. */
@@ -51,9 +55,16 @@ export const postMessage = onCall({ cors }, async (request) => {
   const { uid, profile } = await requireProfile(request)
   const { value, errors } = validateChatMessage(request.data)
   if (Object.keys(errors).length) throw new HttpsError('invalid-argument', Object.values(errors)[0], { fields: errors })
-  if (!canUseRoom(value.room, profile.tier)) throw new HttpsError('permission-denied', 'This chat is for Dearly Members.')
+  if (isPenPalRoom(value.room)) {
+    const match = (await db.collection('penpals').doc(value.room.slice(3)).get()).data()
+    if (!match?.members?.includes(uid)) throw new HttpsError('permission-denied', 'This isn’t your pen-pal chat.')
+    if (match.status !== 'active') throw new HttpsError('failed-precondition', 'This pen-pal match has ended.')
+    if (profile.tier !== 'member') throw new HttpsError('permission-denied', 'Pen Pal Match is for Dearly Members.')
+  } else if (!canUseRoom(value.room, profile.tier)) {
+    throw new HttpsError('permission-denied', 'This chat is for Dearly Members.')
+  }
   await chatRateLimit(uid)
-  const ref = db.collection('rooms').doc(value.room).collection('messages').doc()
+  const ref = messages(value.room).doc()
   await ref.set({
     uid,
     name: profile.displayName,
@@ -70,6 +81,7 @@ export const deleteMessage = onCall({ cors }, async (request) => {
   const uid = request.auth?.uid
   if (!uid) throw new HttpsError('unauthenticated', 'Please sign in.')
   const { room, id } = request.data ?? {}
+  if (!room || !id) throw new HttpsError('invalid-argument', 'Missing message.')
   const ref = msgRef(String(room), String(id))
   const msg = (await ref.get()).data()
   if (!msg) throw new HttpsError('not-found', 'That message no longer exists.')
@@ -93,6 +105,7 @@ export const reportMessage = onCall({ cors }, async (request) => {
   const reason = REPORT_REASONS[request.data?.reason] ? request.data.reason : 'other'
   const note = typeof request.data?.note === 'string' ? request.data.note.trim().slice(0, 500) : ''
 
+  if (!room || !id || (!isPenPalRoom(room) && !canUseRoom(room, 'member'))) throw new HttpsError('invalid-argument', 'Unknown message.')
   await db.runTransaction(async (tx) => {
     const ref = msgRef(room, id)
     const msg = (await tx.get(ref)).data()
@@ -143,6 +156,7 @@ export const adminModerate = onCall({ cors }, async (request) => {
   const id = String(request.data?.id ?? '')
   const action = request.data?.action
   if (!['hide', 'restore', 'dismiss'].includes(action)) throw new HttpsError('invalid-argument', 'Unknown action.')
+  if (!room || !id) throw new HttpsError('invalid-argument', 'Missing message.')
 
   await db.runTransaction(async (tx) => {
     const ref = msgRef(room, id)

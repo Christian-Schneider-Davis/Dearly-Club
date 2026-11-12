@@ -16,6 +16,8 @@ const NAV = [
   { to: 'newsletter', label: 'Newsletter list' },
   { to: 'accounts', label: 'Community' },
   { to: 'moderation', label: 'Moderation' },
+  { to: 'pen-pals', label: 'Pen pals' },
+  { to: 'rituals', label: 'Slow Rituals' },
 ]
 
 export default function AdminLayout({ user }) {

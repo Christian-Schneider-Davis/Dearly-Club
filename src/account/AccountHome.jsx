@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import { Eyebrow } from '../components/ui/Layout'
-import { chatPage, rooms } from '../content/community'
 import { clubs, stripeLinks } from '../content/site'
 import usePageTitle from '../hooks/usePageTitle'
 import { readCallError } from '../lib/callErrors'
@@ -85,12 +84,12 @@ export default function AccountHome({ user, profile, account, onChanged }) {
                   <h3>{c.name}</h3>
                   <p className={styles.muted}>{c.blurb}</p>
                 </div>
-                {open && c.room && rooms[c.room] ? (
-                  <Button to={`/dearly-chat/${c.room}`} size="md">
+                {open ? (
+                  <Button to={c.path} size="md">
                     Open
                   </Button>
                 ) : (
-                  <span className={styles.clubStatus}>{open ? chatPage.opening : 'Members only'}</span>
+                  <span className={styles.clubStatus}>Members only</span>
                 )}
               </li>
             )

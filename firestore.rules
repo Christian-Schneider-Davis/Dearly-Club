@@ -54,6 +54,37 @@ service cloud.firestore {
         || (room in ['slow-rituals'] && isPaidMember());
     }
 
+    // Pen Pal Match: each pair can read their own match, chat and (once both
+    // have chosen to share) each other's address. Admins can read matches but
+    // not the addresses. Everything is written by the Cloud Functions.
+    function inMatch(id) {
+      return signedIn() && request.auth.uid in get(/databases/$(database)/documents/penpals/$(id)).data.members;
+    }
+    match /penpalRequests/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+    }
+    match /penpals/{id} {
+      allow read: if isAdmin() || (signedIn() && request.auth.uid in resource.data.members);
+      match /messages/{msg} {
+        allow read: if isAdmin() || inMatch(id);
+      }
+      match /addresses/{uid} {
+        allow read: if inMatch(id)
+          && (request.auth.uid == uid || get(/databases/$(database)/documents/penpals/$(id)).data.addressesShared == true);
+      }
+    }
+
+    // Slow Rituals library: members read published rituals; Ariane writes them.
+    match /rituals/{id} {
+      allow read: if isAdmin() || (isPaidMember() && resource.data.published == true);
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title', 'month', 'intro', 'body', 'published', 'createdAt', 'updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120
+        && request.resource.data.body is string && request.resource.data.body.size() <= 20000
+        && request.resource.data.published is bool;
+      allow delete: if isAdmin();
+    }
+
     // Reports and the text of hidden messages: admins only.
     match /reports/{id} {
       allow read: if isAdmin();
