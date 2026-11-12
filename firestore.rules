@@ -24,6 +24,23 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
 
+    // A community member: signed in, email confirmed, has a profile, not paused.
+    function isCommunityMember() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/profiles/$(request.auth.uid))
+        && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('suspended', false) != true;
+    }
+
+    // The Dearly Chat. All writes go through the Cloud Functions (which check
+    // and set the free/member tier), so the browser can only read.
+    match /profiles/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin() || isCommunityMember();
+    }
+    match /users/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+    }
+
     // Lets the admin area check "am I an admin?" for the signed-in user only.
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;

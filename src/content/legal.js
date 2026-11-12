@@ -88,7 +88,7 @@ export const legalDocs = {
       {
         heading: 'The Dearly Chat',
         body: [
-          'When the members’ community opens, using it is subject to our Community Guidelines. We may remove content or suspend accounts that break them.',
+          'The Dearly Chat is for adults (18+). Creating an account is free; the members’ clubs need an active membership or gift membership, matched by the email address on your account. Using it is subject to our Community Guidelines. We may remove content or suspend accounts that break them. You can delete your account at any time from your account page.',
         ],
       },
       {
@@ -201,7 +201,7 @@ export const legalDocs = {
               'Consent records: that you accepted our terms (and, for memberships, the monthly renewal), with the date, time and IP address, so we can prove it.',
               'Messages: what you send us through the contact form or by email, and any withdrawal requests.',
               'Newsletter: your email, if you sign up.',
-              'Community (when it opens): your account, profile and the messages you post.',
+              'The Dearly Chat: your email, the profile you choose to share (name, country, short bio, interests), your confirmation that you are 18+ and accept the Community Guidelines, and the messages you post. Your email is never shown to other members.',
               'Technical data: IP address and basic browser information in the security logs of our hosting and servers, and your cookie choice.',
             ],
           },
@@ -246,7 +246,7 @@ export const legalDocs = {
               'Gift details: until the gift is fully delivered, then with the order records.',
               'Contact messages and withdrawal requests: up to 3 years.',
               'Newsletter: until you unsubscribe.',
-              'Community account: until you delete it.',
+              'The Dearly Chat account and profile: until you delete it (deleted immediately).',
             ],
           },
         ],

@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { home } from '../../content/site'
+import { readCallError } from '../../lib/callErrors'
 import { roles } from '../../assets/images'
 import Reveal from '../motion/Reveal'
 import { Container } from '../ui/Layout'
@@ -41,7 +42,6 @@ export default function Newsletter() {
       setEmail('')
       setConsent(false)
     } catch (err) {
-      const { readCallError } = await import('../../lib/callErrors')
       setStatus({ type: 'error', message: readCallError(err).message })
     }
   }

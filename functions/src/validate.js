@@ -277,3 +277,61 @@ export function cleanImport(rows = [], max = 5000) {
   }
   return { rows: out, skipped }
 }
+
+/* ------------------------------------------------------------------ */
+/* Community profiles                                                  */
+/* ------------------------------------------------------------------ */
+export const GUIDELINES_VERSION = '2026-11'
+export const AVATAR_COLORS = ['burgundy', 'oxblood', 'sage', 'ink', 'sand', 'blush', 'ochre', 'lavender']
+export const INTERESTS = [
+  'letter writing',
+  'calligraphy',
+  'watercolour',
+  'journaling',
+  'poetry',
+  'books',
+  'travel',
+  'languages',
+  'stationery',
+  'photography',
+  'nature',
+  'slow living',
+]
+
+/**
+ * Validates a profile save. `isNew` = first save, which also needs the
+ * 18+ confirmation and the Community Guidelines.
+ */
+export function validateProfile(input = {}, isNew = false) {
+  const errors = {}
+  const interests = Array.isArray(input.interests) ? [...new Set(input.interests.filter((i) => INTERESTS.includes(i)))].slice(0, 6) : []
+  const value = {
+    displayName: clean(input.displayName, 40),
+    country: clean(input.country, 2).toUpperCase(),
+    bio: longText(input.bio, 300),
+    interests,
+    avatarColor: AVATAR_COLORS.includes(input.avatarColor) ? input.avatarColor : AVATAR_COLORS[0],
+  }
+  if (value.displayName.length < 2) errors.displayName = 'Choose a name of at least 2 characters.'
+  else if (/(https?:|www\.|@)/i.test(value.displayName)) errors.displayName = 'Names can’t contain links or email addresses.'
+  if (value.country && !/^[A-Z]{2}$/.test(value.country)) errors.country = 'Choose a country.'
+  if (isNew) {
+    if (input.adult !== true) errors.adult = 'You must be 18 or older to join.'
+    if (input.guidelines !== true) errors.guidelines = 'Please accept the Community Guidelines.'
+  }
+  return { value, errors }
+}
+
+const PAID_STATUSES = new Set(['active', 'trialing', 'past_due'])
+
+/**
+ * Is this email a paying member right now?
+ * members: rows from members/ with this email. gifts: redeemed gifts for this email.
+ */
+export function tierFor({ members = [], gifts = [] }, now = new Date()) {
+  if (members.some((m) => PAID_STATUSES.has(m.status))) return 'member'
+  // Access lasts through the calendar month of the last gift letter.
+  const thisMonth = parisDate(now).slice(0, 7)
+  if (gifts.some((g) => g.status === 'redeemed' && ((g.monthsRemaining ?? 0) > 0 || (g.lastLetterMonth ?? '') >= thisMonth))) return 'member'
+  return 'free'
+}

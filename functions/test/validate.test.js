@@ -133,3 +133,27 @@ test('newsletter import: dedupes, lower-cases, skips bad rows', () => {
   assert.deepEqual(rows, [{ email: 'a@b.co', firstName: 'Ann' }])
   assert.equal(skipped, 3)
 })
+
+import { tierFor, validateProfile } from '../src/validate.js'
+
+test('profile: name rules; first save needs 18+ and guidelines', () => {
+  const ok = validateProfile({ displayName: 'Léa', country: 'fr', interests: ['poetry', 'poetry', 'hacking'], avatarColor: 'nope' }, false)
+  assert.deepEqual(ok.errors, {})
+  assert.deepEqual(ok.value.interests, ['poetry'])
+  assert.equal(ok.value.country, 'FR')
+  assert.equal(ok.value.avatarColor, 'burgundy')
+  assert.ok(validateProfile({ displayName: 'www.spam.com' }).errors.displayName)
+  const first = validateProfile({ displayName: 'Léa' }, true).errors
+  assert.ok(first.adult && first.guidelines)
+})
+
+test('tier: active or past-due members and running gifts are members', () => {
+  const now = new Date('2026-11-12T12:00:00Z')
+  assert.equal(tierFor({ members: [{ status: 'active' }] }, now), 'member')
+  assert.equal(tierFor({ members: [{ status: 'past_due' }] }, now), 'member')
+  assert.equal(tierFor({ members: [{ status: 'canceled' }] }, now), 'free')
+  assert.equal(tierFor({ gifts: [{ status: 'redeemed', monthsRemaining: 2 }] }, now), 'member')
+  assert.equal(tierFor({ gifts: [{ status: 'redeemed', monthsRemaining: 0, lastLetterMonth: '2026-11' }] }, now), 'member')
+  assert.equal(tierFor({ gifts: [{ status: 'redeemed', monthsRemaining: 0, lastLetterMonth: '2026-10' }] }, now), 'free')
+  assert.equal(tierFor({}, now), 'free')
+})

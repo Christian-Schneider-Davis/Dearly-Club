@@ -13,6 +13,7 @@ import Gifts from './pages/Gifts'
 import Inbox from './pages/Inbox'
 import EmailMembers from './pages/EmailMembers'
 import Newsletter from './pages/Newsletter'
+import Accounts from './pages/Accounts'
 import styles from './admin.module.css'
 
 /** Admin area: sign-in, admin check, then the dashboard pages. */
@@ -65,6 +66,7 @@ export default function AdminApp() {
         <Route path="inbox" element={<Inbox />} />
         <Route path="email" element={<EmailMembers />} />
         <Route path="newsletter" element={<Newsletter />} />
+        <Route path="accounts" element={<Accounts />} />
         <Route path="*" element={<Navigate to="" replace />} />
       </Route>
     </Routes>

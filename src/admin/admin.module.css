@@ -639,3 +639,9 @@
   gap: var(--space-3);
   justify-items: start;
 }
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
