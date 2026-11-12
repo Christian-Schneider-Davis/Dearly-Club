@@ -1,0 +1,199 @@
+.banner {
+  position: fixed;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-banner);
+  width: min(30rem, calc(100% - var(--space-4) * 2));
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-paper);
+  box-shadow: var(--shadow-lift);
+  animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: var(--space-3);
+    width: auto;
+    padding: var(--space-5);
+  }
+}
+
+.title {
+  margin-bottom: var(--space-2);
+  font-size: 1.5rem;
+}
+
+.text {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.gpc {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-sage);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* Accept and Reject look exactly the same: no nudging (EU guidance). */
+.choice {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-pill);
+  background: var(--color-ink);
+  color: var(--on-dark);
+  font-size: var(--text-sm);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.choice:hover {
+  background: #000;
+}
+
+.link {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* Settings dialog */
+.dialog {
+  width: min(36rem, calc(100% - var(--space-6)));
+  max-height: calc(100vh - var(--space-7));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--color-paper);
+  color: var(--text);
+  box-shadow: var(--shadow-lift);
+}
+
+.dialog::backdrop {
+  background: rgb(43 38 34 / 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.dialogInner {
+  display: grid;
+  gap: var(--space-5);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.dialogTitle {
+  font-size: 2rem;
+}
+
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-5);
+  align-items: start;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.itemLabel {
+  font-weight: 500;
+}
+
+.itemText {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  margin-top: 2px;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch input:disabled {
+  cursor: not-allowed;
+}
+
+.switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--color-taupe);
+  transition: background-color var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+.switch span::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.switch input:checked + span {
+  background: var(--color-sage);
+}
+
+.switch input:checked + span::after {
+  transform: translateX(20px);
+}
+
+.switch input:disabled + span {
+  opacity: 0.6;
+}
+
+.switch input:focus-visible + span {
+  box-shadow: var(--focus-ring);
+}
+
+.dialogActions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+@media (max-width: 480px) {
+  .dialogActions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,19 +5,18 @@
  *  fulfilGiftPayment   (from the webhook) → gives the gift a unique code, emails buyer, sends card
  *  sendScheduledGifts  every morning → sends gift cards scheduled for today
  *  redeemGift          website → recipient adds their address; prepaid months begin
- *  monthlyGiftOrders   1st of each month → adds that month's letter to the shipping list
+ *  monthlyGiftOrders   19th of each month (cutoff) → adds next month's letter to the shipping list
  */
-import { createHash, randomInt } from 'node:crypto'
+import { randomInt } from 'node:crypto'
 import { FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { giftCardEmail, giftReceiptEmail, giftRedeemedEmail, queueEmail } from './emails.js'
-import { STRIPE_SECRET_KEY, STRIPE_TAX_ENABLED, cors, db, priceByLookupKey, stripe } from './shared.js'
-import { CODE_ALPHABET, GIFTS, TERMS_VERSION, parisDate, safeReturnBase, validateGift, validateRedeem } from './validate.js'
+import { STRIPE_SECRET_KEY, STRIPE_TAX_ENABLED, cors, db, priceByLookupKey, rateLimit, stripe } from './shared.js'
+import { CODE_ALPHABET, GIFTS, TERMS_VERSION, letterMonth, parisDate, safeReturnBase, validateGift, validateRedeem } from './validate.js'
 
 const gifts = db.collection('gifts')
-const thisMonth = () => parisDate().slice(0, 7) // 'YYYY-MM'
 
 function newCode() {
   const pick = () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]
@@ -162,29 +161,12 @@ export const sendScheduledGifts = onSchedule({ schedule: 'every day 08:00', time
 /* ------------------------------------------------------------------ */
 /* Redeem                                                              */
 /* ------------------------------------------------------------------ */
-const MAX_ATTEMPTS_PER_HOUR = 10
-
-async function checkRateLimit(ip) {
-  if (!ip) return
-  const key = createHash('sha256').update(ip).digest('hex').slice(0, 32) // store a hash, not the IP
-  const ref = db.collection('redeemAttempts').doc(key)
-  const hour = new Date().toISOString().slice(0, 13)
-  await db.runTransaction(async (tx) => {
-    const data = (await tx.get(ref)).data()
-    const count = data?.hour === hour ? data.count : 0
-    if (count >= MAX_ATTEMPTS_PER_HOUR) {
-      throw new HttpsError('resource-exhausted', 'Too many attempts. Please wait an hour and try again.')
-    }
-    tx.set(ref, { hour, count: count + 1 })
-  })
-}
-
 export const redeemGift = onCall({ cors }, async (request) => {
   const { value, errors } = validateRedeem(request.data)
   if (Object.keys(errors).length) {
     throw new HttpsError('invalid-argument', 'Please check the highlighted fields.', { fields: errors })
   }
-  await checkRateLimit(request.rawRequest?.ip)
+  await rateLimit(request.rawRequest?.ip, 'redeem', 10)
 
   const { code, customer, shipping } = value
   const result = await db.runTransaction(async (tx) => {
@@ -211,7 +193,7 @@ export const redeemGift = onCall({ cors }, async (request) => {
       redeemedBy: customer,
       shipping,
       monthsRemaining: gift.months - 1,
-      lastOrderMonth: thisMonth(),
+      lastLetterMonth: letterMonth(),
     })
     // First month's letter goes straight onto the shipping list.
     tx.set(db.collection('orders').doc(`gift_${giftRef.id}_1`), {
@@ -221,6 +203,7 @@ export const redeemGift = onCall({ cors }, async (request) => {
       giftId: giftRef.id,
       giftMonth: 1,
       giftMonths: gift.months,
+      letterMonth: letterMonth(),
       customer,
       shipping,
       createdAt: FieldValue.serverTimestamp(),
@@ -234,16 +217,17 @@ export const redeemGift = onCall({ cors }, async (request) => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Monthly: one order per active gift membership                       */
+/* Monthly, on the 19th (cutoff) at 20:00: next month's letter for     */
+/* every active gift membership, ready for the 20th–25th shipping run. */
 /* ------------------------------------------------------------------ */
-export const monthlyGiftOrders = onSchedule({ schedule: '0 6 1 * *', timeZone: 'Europe/Paris' }, async () => {
-  const month = thisMonth()
+export const monthlyGiftOrders = onSchedule({ schedule: '0 20 19 * *', timeZone: 'Europe/Paris' }, async () => {
+  const month = letterMonth()
   const active = await gifts.where('monthsRemaining', '>', 0).get()
   let created = 0
   for (const doc of active.docs) {
     await db.runTransaction(async (tx) => {
       const gift = (await tx.get(doc.ref)).data()
-      if (!gift || gift.monthsRemaining <= 0 || gift.lastOrderMonth === month) return
+      if (!gift || gift.monthsRemaining <= 0 || (gift.lastLetterMonth ?? '') >= month) return
       const n = gift.months - gift.monthsRemaining + 1
       tx.set(db.collection('orders').doc(`gift_${doc.id}_${n}`), {
         status: 'paid',
@@ -252,12 +236,13 @@ export const monthlyGiftOrders = onSchedule({ schedule: '0 6 1 * *', timeZone: '
         giftId: doc.id,
         giftMonth: n,
         giftMonths: gift.months,
+        letterMonth: month,
         customer: gift.redeemedBy,
         shipping: gift.shipping,
         createdAt: FieldValue.serverTimestamp(),
         paidAt: FieldValue.serverTimestamp(),
       })
-      tx.update(doc.ref, { monthsRemaining: gift.monthsRemaining - 1, lastOrderMonth: month })
+      tx.update(doc.ref, { monthsRemaining: gift.monthsRemaining - 1, lastLetterMonth: month })
       created++
     })
   }

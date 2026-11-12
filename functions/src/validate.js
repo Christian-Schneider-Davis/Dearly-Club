@@ -165,3 +165,46 @@ export function validateRedeem(input = {}) {
   }
   return { value: { code, customer: value.customer, shipping: value.shipping }, errors }
 }
+
+/* ------------------------------------------------------------------ */
+/* Shipping schedule                                                   */
+/* Letters are posted between the 20th and 25th of each month. Orders  */
+/* placed up to and including the 19th (Paris time) get NEXT month's   */
+/* letter; from the 20th they get the one after.                       */
+/* ------------------------------------------------------------------ */
+export const CUTOFF_DAY = 19
+
+/** 'YYYY-MM' of the letter an order placed at `date` will receive. */
+export function letterMonth(date = new Date()) {
+  const [y, m, d] = parisDate(date).split('-').map(Number)
+  const add = d <= CUTOFF_DAY ? 1 : 2
+  const total = y * 12 + (m - 1) + add
+  return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`
+}
+
+/* ------------------------------------------------------------------ */
+/* Withdrawal (EU right of withdrawal, "withdraw from contract here")  */
+/* ------------------------------------------------------------------ */
+export const WITHDRAW_SUBJECTS = {
+  membership: 'Dearly Member subscription',
+  letter: 'Dearly Guest letter',
+  gift: 'Gift membership',
+}
+
+export function validateWithdrawal(input = {}) {
+  const errors = {}
+  const value = {
+    name: clean(input.name, 120),
+    email: clean(input.email, 254).toLowerCase(),
+    subject: clean(input.subject, 20),
+    orderDate: clean(input.orderDate, 10),
+    reference: clean(input.reference, 80),
+    note: typeof input.note === 'string' ? input.note.replace(/\r/g, '').trim().slice(0, 1000) : '',
+  }
+  if (!value.name) errors.name = 'Your name is required.'
+  if (!EMAIL.test(value.email)) errors.email = 'A valid email is required.'
+  if (!WITHDRAW_SUBJECTS[value.subject]) errors.subject = 'Choose what you are withdrawing from.'
+  if (value.orderDate && !/^\d{4}-\d{2}-\d{2}$/.test(value.orderDate)) errors.orderDate = 'Choose a valid date.'
+  if (input.confirmed !== true) errors.confirmed = 'Please confirm your withdrawal.'
+  return { value, errors }
+}

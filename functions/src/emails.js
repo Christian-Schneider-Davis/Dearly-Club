@@ -90,11 +90,11 @@ export function giftRedeemedEmail({ customer, months: n, shipping }) {
     preheader: 'Your letters are on their way',
     body: `
 <h1 style="margin:0 0 20px;font-weight:normal;font-size:30px;line-height:1.2;">Welcome to Dearly Club, ${escapeHtml(customer.firstName)}.</h1>
-<p>Your gift is redeemed: <strong>${months(n)}</strong> of letters, starting with this month's.</p>
+<p>Your gift is redeemed: <strong>${months(n)}</strong> of letters. Letters are posted between the 20th and 25th of each month.</p>
 <p>We'll send them to:<br><span style="color:#5f574f;">${escapeHtml(shipping.line1)}${shipping.line2 ? `, ${escapeHtml(shipping.line2)}` : ''}<br>${escapeHtml(shipping.postalCode)} ${escapeHtml(shipping.city)}, ${escapeHtml(shipping.country)}</span></p>
 <p>Moving before your gift ends? Just reply to this email with your new address.</p>`,
   })
-  const text = `Welcome to Dearly Club, ${customer.firstName}.\n\nYour gift is redeemed: ${months(n)} of letters, starting with this month's.\n\nMoving before your gift ends? Just reply to this email with your new address.`
+  const text = `Welcome to Dearly Club, ${customer.firstName}.\n\nYour gift is redeemed: ${months(n)} of letters. Letters are posted between the 20th and 25th of each month.\n\nMoving before your gift ends? Just reply to this email with your new address.`
   return { to: customer.email, message: { subject: 'Your Dearly Club gift is redeemed', text, html } }
 }
 
@@ -103,4 +103,95 @@ export function queueEmail(mail, tx) {
   const ref = db.collection('mail').doc()
   const data = { ...mail, createdAt: FieldValue.serverTimestamp() }
   return tx ? tx.set(ref, data) : ref.set(data)
+}
+
+const monthName = (yyyyMm) => {
+  if (!yyyyMm) return ''
+  const [y, m] = yyyyMm.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
+const postedIn = (yyyyMm) => {
+  const [y, m] = yyyyMm.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 2, 15)).toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' })
+}
+const euros = (cents, currency = 'eur') =>
+  new Intl.NumberFormat('en-IE', { style: 'currency', currency: currency.toUpperCase() }).format((cents ?? 0) / 100)
+
+const addressHtml = (s) =>
+  `${escapeHtml(s.line1)}${s.line2 ? `, ${escapeHtml(s.line2)}` : ''}<br>${escapeHtml(s.postalCode)} ${escapeHtml(s.city)}${s.state ? `, ${escapeHtml(s.state)}` : ''}<br>${escapeHtml(s.country)}`
+
+/**
+ * Order confirmation, sent once a new order is paid. Includes the key terms
+ * (renewal, how to cancel, right of withdrawal) as required by EU and US
+ * auto-renewal rules.
+ */
+export function orderConfirmationEmail(order) {
+  const isMember = order.plan === 'member'
+  const name = order.customer.firstName
+  const letter = monthName(order.letterMonth)
+  const total = euros(order.amounts?.total, order.amounts?.currency)
+  const tax = order.amounts?.tax ? ` (including ${euros(order.amounts.tax, order.amounts.currency)} tax)` : ''
+  const renewal = isMember
+    ? `<p><strong>Your membership renews automatically every month</strong> on the same day of the month as today, at €9 plus any tax for your address, until you cancel. You can cancel anytime, online, at <a href="${siteUrl('manage')}" style="color:#7a1f24;">Manage membership</a>. Cancelling stops all future payments; your membership stays active until the end of the month you've paid for.</p>`
+    : ''
+  const html = layout({
+    preheader: `Your first letter: ${letter}`,
+    body: `
+<h1 style="margin:0 0 20px;font-weight:normal;font-size:30px;line-height:1.2;">Thank you, ${escapeHtml(name)}.</h1>
+<p>Your ${isMember ? '<strong>Dearly Member</strong> subscription' : '<strong>Dearly Guest</strong> letter'} is confirmed. Paid today: <strong>${total}</strong>${tax}.</p>
+<p>Your first letter is <strong>${letter}</strong>'s, posted between 20 and 25 ${postedIn(order.letterMonth)}, to:<br><span style="color:#5f574f;">${addressHtml(order.shipping)}</span></p>
+${renewal}
+<p style="font-size:15px;color:#5f574f;">If you're a consumer in the EU or UK, you can withdraw within 14 days of receiving your first letter, without giving a reason, using <a href="${siteUrl('legal/withdraw')}" style="color:#7a1f24;">Withdraw from contract here</a> on our website. Full details are in our <a href="${siteUrl('legal/terms')}" style="color:#7a1f24;">Terms</a> and <a href="${siteUrl('legal/shipping-returns')}" style="color:#7a1f24;">Shipping, Returns &amp; Cancellation</a> policy.</p>
+<p style="font-size:15px;color:#5f574f;">Your payment receipt comes separately from Stripe.</p>`,
+  })
+  const text = `Thank you, ${name}.
+
+Your ${isMember ? 'Dearly Member subscription' : 'Dearly Guest letter'} is confirmed. Paid today: ${total}${tax}.
+
+Your first letter is ${letter}'s, posted between 20 and 25 ${postedIn(order.letterMonth)}.
+${isMember ? `\nYour membership renews automatically every month on the same day of the month as today, at €9 plus any tax, until you cancel. Cancel anytime online: ${siteUrl('manage')}\n` : ''}
+EU/UK consumers can withdraw within 14 days of receiving the first letter: ${siteUrl('legal/withdraw')}
+Terms: ${siteUrl('legal/terms')}`
+  return {
+    to: order.customer.email,
+    message: { subject: isMember ? 'Welcome to Dearly Club — your membership is confirmed' : 'Your Dearly Club letter is confirmed', text, html },
+  }
+}
+
+const receivedAt = (date) =>
+  new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'long', timeZone: 'Europe/Paris' }).format(date)
+
+/** Acknowledgement of a withdrawal, with its content and the date and time we received it. */
+export function withdrawalReceiptEmail(w, subjectLabel, date) {
+  const rows = [
+    ['Name', w.name],
+    ['Email', w.email],
+    ['Withdrawing from', subjectLabel],
+    w.orderDate && ['Ordered or received on', w.orderDate],
+    w.reference && ['Order reference or gift code', w.reference],
+    w.note && ['Note', w.note],
+  ].filter(Boolean)
+  const html = layout({
+    preheader: 'We have received your withdrawal',
+    body: `
+<h1 style="margin:0 0 20px;font-weight:normal;font-size:28px;line-height:1.2;">We've received your withdrawal</h1>
+<p>Received on <strong>${receivedAt(date)}</strong>.</p>
+<p>Your statement: “I hereby withdraw from my contract for the following: ${escapeHtml(subjectLabel)}.”</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:16px 0;font-size:15px;">${rows
+      .map(([k, v]) => `<tr><td style="padding:6px 12px 6px 0;color:#5f574f;vertical-align:top;">${k}</td><td style="padding:6px 0;">${escapeHtml(v).replace(/\n/g, '<br>')}</td></tr>`)
+      .join('')}</table>
+<p>We'll process your refund to your original payment method within 14 days, and cancel any membership so no further payments are taken. You don't need to send anything back. Keep this email as your record.</p>`,
+  })
+  const text = `We've received your withdrawal.\nReceived on ${receivedAt(date)}.\n\nYour statement: "I hereby withdraw from my contract for the following: ${subjectLabel}."\n\n${rows.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nWe'll refund you within 14 days and cancel any membership. Keep this email as your record.`
+  return { to: w.email, message: { subject: 'Your withdrawal has been received — Dearly Club', text, html } }
+}
+
+/** Notice to Ariane so she can refund and cancel. */
+export function withdrawalNoticeEmail(w, subjectLabel, date, adminEmail) {
+  const text = `New withdrawal received ${receivedAt(date)}\n\nName: ${w.name}\nEmail: ${w.email}\nFrom: ${subjectLabel}\nDate: ${w.orderDate || '—'}\nReference: ${w.reference || '—'}\nNote: ${w.note || '—'}\n\nAction: refund in Stripe within 14 days and cancel any subscription.`
+  return {
+    to: adminEmail,
+    replyTo: w.email,
+    message: { subject: `Withdrawal: ${w.name} (${subjectLabel})`, text, html: `<pre style="font-family:Arial,sans-serif;font-size:14px;white-space:pre-wrap;">${escapeHtml(text)}</pre>` },
+  }
 }

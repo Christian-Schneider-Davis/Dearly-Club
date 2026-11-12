@@ -22,10 +22,12 @@ import {
   stripe,
   toStripeAddress,
 } from './shared.js'
-import { PLANS, TERMS_VERSION, safeReturnBase, validateCheckout } from './validate.js'
+import { PLANS, TERMS_VERSION, letterMonth, safeReturnBase, validateCheckout } from './validate.js'
 import { fulfilGiftPayment, giftSummary } from './gifts.js'
+import { orderConfirmationEmail, queueEmail } from './emails.js'
 
 export { createGiftCheckout, redeemGift, sendScheduledGifts, monthlyGiftOrders } from './gifts.js'
+export { submitWithdrawal } from './withdrawals.js'
 
 /* ------------------------------------------------------------------ */
 /* 1. Create checkout                                                  */
@@ -182,6 +184,7 @@ async function handleEvent(event) {
         {
           status: paid ? 'paid' : 'processing',
           paidAt: paid ? FieldValue.serverTimestamp() : null,
+          letterMonth: letterMonth(), // e.g. '2026-12' — which month's letter this order receives
           amounts: {
             currency: obj.currency,
             subtotal: obj.amount_subtotal,
@@ -198,6 +201,17 @@ async function handleEvent(event) {
         },
         { merge: true },
       )
+
+      // Confirmation email with the key terms (once per order).
+      if (paid) {
+        await db.runTransaction(async (tx) => {
+          const snap = await tx.get(orderRef)
+          const o = snap.data()
+          if (!o || o.confirmationQueued) return
+          queueEmail(orderConfirmationEmail(o), tx)
+          tx.update(orderRef, { confirmationQueued: true })
+        })
+      }
 
       if (obj.mode === 'subscription' && obj.subscription) {
         const order = (await orderRef.get()).data()
@@ -252,6 +266,7 @@ async function handleEvent(event) {
           status: 'paid',
           type: 'renewal',
           plan: 'member',
+          letterMonth: letterMonth(new Date(obj.created * 1000)),
           customer: { firstName: member.firstName, lastName: member.lastName, email: member.email },
           shipping: member.shipping,
           amounts: { currency: obj.currency, subtotal: obj.subtotal, tax: obj.total - obj.subtotal, total: obj.total },

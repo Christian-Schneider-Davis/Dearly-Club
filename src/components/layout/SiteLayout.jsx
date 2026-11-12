@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import SiteHeader from './SiteHeader'
 import SiteFooter from './SiteFooter'
+import CookieBanner from '../consent/CookieBanner'
 
 /** Pages that open with a full-bleed photo the header sits on top of. */
 const heroPages = ['/']
@@ -30,6 +31,7 @@ export default function SiteLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <CookieBanner />
     </>
   )
 }

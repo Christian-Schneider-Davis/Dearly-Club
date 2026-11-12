@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { brand, legalNav, social } from '../../content/site'
+import { useConsent } from '../consent/ConsentProvider'
 import { Container } from '../ui/Layout'
 import Icon from '../ui/Icon'
 import Logo from '../ui/Logo'
@@ -31,6 +32,7 @@ const columns = [
 ]
 
 export default function SiteFooter() {
+  const { openSettings } = useConsent()
   return (
     <footer className={styles.footer}>
       <Container className={styles.top}>
@@ -64,8 +66,12 @@ export default function SiteFooter() {
 
       <Container className={styles.bottom}>
         <p>{brand.copyright}</p>
-        {/* Opens the cookie preferences once the banner is built in Phase 6 */}
-        <Link to="/legal/cookies">Cookie settings</Link>
+        <div className={styles.bottomLinks}>
+          <Link to="/legal/withdraw">Withdraw from contract here</Link>
+          <button type="button" className={styles.linkButton} onClick={openSettings}>
+            Cookie settings
+          </button>
+        </div>
       </Container>
     </footer>
   )

@@ -255,3 +255,18 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+
+.firstLetter {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  border: 1px dashed var(--color-taupe);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.firstLetter strong {
+  color: var(--text);
+  font-weight: 500;
+}

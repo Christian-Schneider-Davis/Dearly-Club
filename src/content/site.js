@@ -176,7 +176,7 @@ export const membershipPage = {
     { title: 'Open, write, connect', text: 'Your letter arrives with a prompt and a ritual. Write back to someone you love.' },
   ],
   notes: [
-    { title: 'Shipping', text: 'Included in every price, worldwide. Letters are posted once a month.' },
+    { title: 'Shipping', text: 'Included in every price, worldwide. Letters are posted between the 20th and 25th of each month. Join by the 19th to receive the next month’s letter: for example, join by 19 November for December’s letter.' },
     { title: 'Taxes', text: 'Any VAT or sales tax due for your country is calculated from your address and shown before you pay. Outside the EU, your country may charge import duties on delivery.' },
     { title: 'Skip or cancel', text: 'Members can update their address, skip a month or cancel at any time from their account, as easily as signing up.' },
   ],

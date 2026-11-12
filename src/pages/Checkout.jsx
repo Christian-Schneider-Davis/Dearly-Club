@@ -10,6 +10,7 @@ import ResponsiveImage from '../components/ui/ResponsiveImage'
 import usePageTitle from '../hooks/usePageTitle'
 import { readCallError } from '../lib/callErrors'
 import { guessCountry } from '../lib/countries'
+import { firstLetter } from '../lib/shipping'
 import { email, required, validate } from '../lib/validate'
 import styles from './Checkout.module.css'
 
@@ -241,6 +242,9 @@ export default function Checkout() {
               <span className={styles.totalAmount}>{formatPrice(plan.priceCents)} + tax</span>
             </div>
             {isSubscription && <p className={styles.then}>Then {formatPrice(plan.priceCents)} + tax each month. Skip or cancel anytime.</p>}
+            <p className={styles.then}>
+              Your first letter: <strong>{firstLetter().letterMonth}</strong>, posted 20–25 {firstLetter().postedMonth}.
+            </p>
             <p className={styles.duties}>Outside the EU, your country may charge import duties on delivery.</p>
           </aside>
         </div>

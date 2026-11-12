@@ -12,6 +12,7 @@ import ResponsiveImage from '../components/ui/ResponsiveImage'
 import usePageTitle from '../hooks/usePageTitle'
 import { readCallError } from '../lib/callErrors'
 import { guessCountry } from '../lib/countries'
+import { firstLetter } from '../lib/shipping'
 import { email, required, validate } from '../lib/validate'
 import styles from './Redeem.module.css'
 
@@ -107,7 +108,9 @@ export default function Redeem() {
               <br />
               <em>Your {done.months} months of letters begin now.</em>
             </h1>
-            <p className={styles.lead}>Your first letter is on this month's list. We've emailed you a confirmation with your delivery address.</p>
+            <p className={styles.lead}>
+              Your first letter is {firstLetter().letterMonth}'s, posted 20–25 {firstLetter().postedMonth}. We've emailed you a confirmation with your delivery address.
+            </p>
             <div className={styles.actions}>
               <Button to="/dearly-chat" size="lg">
                 Meet the community

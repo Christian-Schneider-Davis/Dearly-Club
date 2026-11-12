@@ -9,6 +9,7 @@ import Button from '../components/ui/Button'
 import Icon from '../components/ui/Icon'
 import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import usePageTitle from '../hooks/usePageTitle'
+import { firstLetter } from '../lib/shipping'
 import styles from './Memberships.module.css'
 
 const photos = [
@@ -45,6 +46,7 @@ export default function Memberships() {
   }, [])
 
   const checkoutTo = `/checkout?plan=${planId}`
+  const first = firstLetter()
 
   return (
     <>
@@ -76,6 +78,9 @@ export default function Memberships() {
                 </Button>
               </div>
               <p className={styles.fine}>{plan.finePrint}</p>
+              <p className={styles.firstLetter}>
+                Join by {first.cutoffLabel} for <strong>{first.letterMonth}'s letter</strong>, posted 20–25 {first.postedMonth}.
+              </p>
             </Reveal>
 
             <Reveal delay={200}>

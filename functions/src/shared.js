@@ -48,3 +48,24 @@ export const siteUrl = (path = '') => {
   const base = SITE_URL.value().endsWith('/') ? SITE_URL.value() : `${SITE_URL.value()}/`
   return base + path.replace(/^\//, '')
 }
+
+// Where notices for Ariane go (withdrawals, contact messages). Set in functions/.env.
+export const ADMIN_EMAIL = defineString('ADMIN_EMAIL', { default: '' })
+
+/**
+ * Simple per-visitor limit: `max` calls per hour per IP for a given bucket.
+ * Stores a hash of the IP, never the IP itself.
+ */
+export async function rateLimit(ip, bucket, max) {
+  if (!ip) return
+  const { createHash } = await import('node:crypto')
+  const key = `${bucket}_${createHash('sha256').update(ip).digest('hex').slice(0, 32)}`
+  const ref = db.collection('rateLimits').doc(key)
+  const hour = new Date().toISOString().slice(0, 13)
+  await db.runTransaction(async (tx) => {
+    const data = (await tx.get(ref)).data()
+    const count = data?.hour === hour ? data.count : 0
+    if (count >= max) throw new HttpsError('resource-exhausted', 'Too many attempts. Please wait an hour and try again.')
+    tx.set(ref, { hour, count: count + 1 })
+  })
+}

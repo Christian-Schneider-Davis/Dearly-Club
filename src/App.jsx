@@ -10,6 +10,8 @@ import ManageMembership from './pages/ManageMembership'
 import Gift from './pages/Gift'
 import GiftSuccess from './pages/GiftSuccess'
 import Redeem from './pages/Redeem'
+import LegalPage from './pages/LegalPage'
+import Withdraw from './pages/Withdraw'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
@@ -34,11 +36,8 @@ export default function App() {
         <Route path="contact" element={<Contact />} />
         <Route path="dearly-chat" element={<PagePlaceholder title="The Dearly Chat" phase={9} />} />
         <Route path="account" element={<PagePlaceholder title="Your Account" phase={9} />} />
-        <Route path="legal/terms" element={<PagePlaceholder title="Terms & Conditions" phase={6} />} />
-        <Route path="legal/shipping-returns" element={<PagePlaceholder title="Shipping, Returns & Cancellation" phase={6} />} />
-        <Route path="legal/privacy" element={<PagePlaceholder title="Privacy Policy" phase={6} />} />
-        <Route path="legal/cookies" element={<PagePlaceholder title="Cookie Policy" phase={6} />} />
-        <Route path="legal/community-guidelines" element={<PagePlaceholder title="Community Guidelines" phase={9} />} />
+        <Route path="legal/withdraw" element={<Withdraw />} />
+        <Route path="legal/:doc" element={<LegalPage />} />
         <Route path="styleguide" element={<StyleGuide />} />
         <Route path="*" element={<NotFound />} />
       </Route>

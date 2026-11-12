@@ -53,7 +53,8 @@ export default function ManageMembership() {
             <p className={styles.soon}>Member self-service opens when the new store launches.</p>
           )}
           <p className={styles.help}>
-            Trouble signing in? <Link to="/contact">Contact us</Link> and we'll help.
+            Trouble signing in? <Link to="/contact">Contact us</Link> and we'll help. Within 14 days of your first letter?{' '}
+            <Link to="/legal/withdraw">Withdraw from contract here</Link>.
           </p>
         </Reveal>
       </Container>

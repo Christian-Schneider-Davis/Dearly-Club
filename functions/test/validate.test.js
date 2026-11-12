@@ -86,3 +86,21 @@ test('redeem: needs code, person and full address', () => {
   const { errors } = validateRedeem({ code: 'nope', customer: {}, shipping: {}, consent: {} })
   for (const k of ['code', 'firstName', 'lastName', 'email', 'line1', 'city', 'country', 'terms']) assert.ok(errors[k], k)
 })
+
+import { letterMonth } from '../src/validate.js'
+
+test('letter month: 19th is the cutoff (Paris time)', () => {
+  assert.equal(letterMonth(new Date('2026-11-19T21:00:00Z')), '2026-12', '19 Nov 22:00 Paris → December letter')
+  assert.equal(letterMonth(new Date('2026-11-19T23:30:00Z')), '2027-01', '20 Nov 00:30 Paris → January letter')
+  assert.equal(letterMonth(new Date('2026-12-05T10:00:00Z')), '2027-01', 'year rolls over')
+  assert.equal(letterMonth(new Date('2026-12-25T10:00:00Z')), '2027-02')
+})
+
+import { validateWithdrawal } from '../src/validate.js'
+
+test('withdrawal: needs name, email, subject and the confirm step', () => {
+  const ok = validateWithdrawal({ name: 'Camille', email: 'c@example.com', subject: 'membership', confirmed: true })
+  assert.deepEqual(ok.errors, {})
+  const bad = validateWithdrawal({ subject: 'other' })
+  for (const k of ['name', 'email', 'subject', 'confirmed']) assert.ok(bad.errors[k], k)
+})
