@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Dearly Club security rules.
+// Orders, members and payment records are written only by the Cloud Functions
+// (which bypass these rules), never directly by the website. Nothing is
+// readable from a browser yet. The admin area (Phase 7) and community
+// (Phase 9) open specific paths to signed-in users.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

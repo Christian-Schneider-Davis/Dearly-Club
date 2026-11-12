@@ -12,6 +12,7 @@ const columns = [
       { label: 'Memberships', to: '/memberships' },
       { label: 'Gift a Membership', to: '/gift' },
       { label: 'Redeem a Gift', to: '/redeem' },
+      { label: 'Manage membership', to: '/manage' },
       { label: 'The Dearly Chat', to: '/dearly-chat' },
     ],
   },

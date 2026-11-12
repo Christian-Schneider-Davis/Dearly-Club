@@ -4,6 +4,9 @@ import Home from './pages/Home'
 import About from './pages/About'
 import Memberships from './pages/Memberships'
 import Contact from './pages/Contact'
+import Checkout from './pages/Checkout'
+import CheckoutSuccess from './pages/CheckoutSuccess'
+import ManageMembership from './pages/ManageMembership'
 import PagePlaceholder from './pages/PagePlaceholder'
 import StyleGuide from './pages/StyleGuide'
 import NotFound from './pages/NotFound'
@@ -18,7 +21,9 @@ export default function App() {
       <Route element={<SiteLayout />}>
         <Route index element={<Home />} />
         <Route path="memberships" element={<Memberships />} />
-        <Route path="checkout" element={<PagePlaceholder title="Checkout" phase={4} />} />
+        <Route path="checkout" element={<Checkout />} />
+        <Route path="checkout/success" element={<CheckoutSuccess />} />
+        <Route path="manage" element={<ManageMembership />} />
         <Route path="gift" element={<PagePlaceholder title="Gift a Membership" phase={5} />} />
         <Route path="redeem" element={<PagePlaceholder title="Redeem a Gift" phase={5} />} />
         <Route path="about" element={<About />} />

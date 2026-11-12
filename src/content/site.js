@@ -185,3 +185,22 @@ export const membershipPage = {
 export const contactPage = {
   successPreview: 'Thank you for your message. The contact form goes live with the new site; until then you can reach Ariane on Instagram.',
 }
+
+/*
+ * Stripe customer portal: members update their address or card, skip or
+ * cancel. The login link is printed by `npm run setup:stripe` in functions/.
+ */
+export const stripeLinks = {
+  portalLoginUrl: '', // e.g. https://billing.stripe.com/p/login/test_XXXX
+}
+
+export const checkoutPage = {
+  heading: 'Where should we send your letters?',
+  intro: 'Every field marked * is needed so your mail reaches you.',
+  termsLabel: 'I agree to the Terms & Conditions and the Shipping, Returns & Cancellation policy.',
+  renewalLabel:
+    'I understand my Dearly Member subscription renews automatically every month at €9 plus any tax until I cancel. I can skip or cancel anytime.',
+  submit: 'Continue to secure payment',
+  stripeNote: 'Payment is handled by Stripe. Card, Apple Pay and Google Pay accepted.',
+  cancelledNote: "Your payment wasn't completed, and you haven't been charged. Your details are still here whenever you're ready.",
+}
