@@ -14,7 +14,7 @@ export const legalEntity = {
   // expect a postal address and tax ID (NIF) for online sellers — see README.
   address: '',
   country: 'Spain',
-  email: 'ariane.lignier@icloud.com',
+  email: 'hello@dearlyclub.eu',
   vat: '',
   supervisoryAuthority: 'the Agencia Española de Protección de Datos (AEPD), www.aepd.es',
 }
