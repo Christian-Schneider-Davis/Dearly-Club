@@ -14,6 +14,7 @@ import Inbox from './pages/Inbox'
 import EmailMembers from './pages/EmailMembers'
 import Newsletter from './pages/Newsletter'
 import Accounts from './pages/Accounts'
+import Moderation from './pages/Moderation'
 import styles from './admin.module.css'
 
 /** Admin area: sign-in, admin check, then the dashboard pages. */
@@ -67,6 +68,7 @@ export default function AdminApp() {
         <Route path="email" element={<EmailMembers />} />
         <Route path="newsletter" element={<Newsletter />} />
         <Route path="accounts" element={<Accounts />} />
+        <Route path="moderation" element={<Moderation />} />
         <Route path="*" element={<Navigate to="" replace />} />
       </Route>
     </Routes>

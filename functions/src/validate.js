@@ -335,3 +335,24 @@ export function tierFor({ members = [], gifts = [] }, now = new Date()) {
   if (gifts.some((g) => g.status === 'redeemed' && ((g.monthsRemaining ?? 0) > 0 || (g.lastLetterMonth ?? '') >= thisMonth))) return 'member'
   return 'free'
 }
+
+/* ------------------------------------------------------------------ */
+/* Chat                                                                */
+/* ------------------------------------------------------------------ */
+// Chat rooms and who may use them. Phase 11 adds the members' rooms.
+export const ROOMS = { 'the-dearly-club': 'free' }
+export const MESSAGE_LIMIT = 2000
+export const REPORT_REASONS = { unkind: 'Unkind or harassing', spam: 'Spam or selling', personal: 'Shares personal information', sexual: 'Sexual or inappropriate', other: 'Something else' }
+export const AUTO_HIDE_REPORTS = 3
+
+export function validateChatMessage(input = {}) {
+  const room = clean(input.room, 40)
+  // Keep line breaks (max 2 blank lines in a row), trim the ends.
+  const text = typeof input.text === 'string' ? input.text.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim().slice(0, MESSAGE_LIMIT) : ''
+  const errors = {}
+  if (!ROOMS[room]) errors.room = 'Unknown chat.'
+  if (!text) errors.text = 'Write a message first.'
+  return { value: { room, text }, errors }
+}
+
+export const canUseRoom = (room, tier) => ROOMS[room] === 'free' || (ROOMS[room] === 'member' && tier === 'member')

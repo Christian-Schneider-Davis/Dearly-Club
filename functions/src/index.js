@@ -31,6 +31,7 @@ export { submitWithdrawal } from './withdrawals.js'
 export { submitContact, adminSendEmail, adminResendGift } from './admin.js'
 export { subscribeNewsletter, confirmNewsletter, unsubscribeNewsletter, adminImportSubscribers } from './newsletter.js'
 export { saveProfile, refreshMembership, deleteAccount, syncTierOnMember, syncTierOnGift, adminSetSuspended } from './community.js'
+export { postMessage, deleteMessage, reportMessage, blockMember, adminModerate } from './chat.js'
 
 /* ------------------------------------------------------------------ */
 /* 1. Create checkout                                                  */

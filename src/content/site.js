@@ -159,7 +159,7 @@ export const giftOptions = [
 ]
 
 export const clubs = [
-  { id: 'dearly-club', name: 'The Dearly Club', access: 'free', blurb: 'A private group chat for everyone with an account.' },
+  { id: 'dearly-club', room: 'the-dearly-club', name: 'The Dearly Club', access: 'free', blurb: 'A private group chat for everyone with an account.' },
   { id: 'pen-pals', name: 'Pen Pal Match & Chat', access: 'member', blurb: 'Request a pen pal and start writing to someone new.' },
   { id: 'slow-rituals', name: 'Slow Rituals', access: 'member', blurb: 'Tools to recenter and reconnect with yourself.' },
 ]

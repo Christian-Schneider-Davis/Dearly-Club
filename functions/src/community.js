@@ -18,6 +18,7 @@ import { onDocumentWritten } from 'firebase-functions/v2/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions'
 import { requireAdmin } from './admin.js'
+import { eraseMessagesBy } from './chat.js'
 import { cors, db } from './shared.js'
 import { GUIDELINES_VERSION, tierFor, validateProfile } from './validate.js'
 
@@ -54,12 +55,13 @@ export const saveProfile = onCall({ cors }, async (request) => {
   const { value, errors } = validateProfile(request.data, isNew)
   if (Object.keys(errors).length) throw new HttpsError('invalid-argument', 'Please check the highlighted fields.', { fields: errors })
 
-  const tier = await computeTier(email)
+  const [tier, adminSnap] = await Promise.all([computeTier(email), db.collection('admins').doc(uid).get()])
   const now = FieldValue.serverTimestamp()
   const batch = db.batch()
   batch.set(
     db.collection('profiles').doc(uid),
-    { ...value, tier, ...(isNew ? { joinedAt: now } : {}), updatedAt: now },
+    // host: Ariane (anyone in admins/) gets a "Host" badge in the chat.
+    { ...value, tier, host: adminSnap.exists, ...(isNew ? { joinedAt: now } : {}), updatedAt: now },
     { merge: true },
   )
   batch.set(
@@ -89,7 +91,8 @@ export const deleteAccount = onCall({ cors }, async (request) => {
   const uid = request.auth?.uid
   if (!uid) throw new HttpsError('unauthenticated', 'Please sign in.')
   if (request.data?.confirm !== 'DELETE') throw new HttpsError('invalid-argument', 'Type DELETE to confirm.')
-  // Later phases add chat messages, pen-pal matches, etc.; they register cleanup here.
+  // Their chat messages are blanked (the conversation around them stays readable).
+  await eraseMessagesBy(uid)
   await Promise.all([db.collection('profiles').doc(uid).delete(), db.collection('users').doc(uid).delete()])
   await getAuth().deleteUser(uid)
   logger.info('Account deleted', { uid })

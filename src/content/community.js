@@ -48,3 +48,28 @@ export const accountCopy = {
   linkSent: (email) => `We’ve sent a sign-in link to ${email}. Open it on this device to continue. It can take a minute; check spam too.`,
   verifySent: (email) => `We’ve sent a confirmation link to ${email}. Click it, then come back here.`,
 }
+
+/* Chat rooms (URL slug → details). Keep access in step with functions/src/validate.js → ROOMS. */
+export const rooms = {
+  'the-dearly-club': {
+    name: 'The Dearly Club',
+    access: 'free',
+    intro: 'Our group chat for everyone. Say hello, share what you’re writing, and swap ideas for slow, thoughtful living.',
+  },
+}
+
+export const chatCopy = {
+  welcomeNote: 'Be kind, keep personal details private, and never share your home address here. You can report any message.',
+  empty: 'No messages yet. Be the first to say hello!',
+  placeholder: 'Write a message…',
+  hiddenOwn: 'Hidden while we review a report.',
+  hidden: 'Message hidden while we review it.',
+  deleted: 'Message deleted.',
+  reportReasons: {
+    unkind: 'Unkind or harassing',
+    spam: 'Spam or selling',
+    personal: 'Shares personal information',
+    sexual: 'Sexual or inappropriate',
+    other: 'Something else',
+  },
+}

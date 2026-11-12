@@ -1,14 +1,15 @@
 import { signOut } from 'firebase/auth'
-import { useState } from 'react'
+import { doc, getDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import { Eyebrow } from '../components/ui/Layout'
-import { chatPage } from '../content/community'
+import { chatPage, rooms } from '../content/community'
 import { clubs, stripeLinks } from '../content/site'
 import usePageTitle from '../hooks/usePageTitle'
 import { readCallError } from '../lib/callErrors'
 import { callFunction } from '../lib/firebase'
-import { auth } from '../lib/session'
+import { auth, db } from '../lib/session'
 import Avatar from './Avatar'
 import ProfileForm from './ProfileForm'
 import styles from './account.module.css'
@@ -84,7 +85,13 @@ export default function AccountHome({ user, profile, account, onChanged }) {
                   <h3>{c.name}</h3>
                   <p className={styles.muted}>{c.blurb}</p>
                 </div>
-                <span className={styles.clubStatus}>{open ? chatPage.opening : 'Members only'}</span>
+                {open && c.room && rooms[c.room] ? (
+                  <Button to={`/dearly-chat/${c.room}`} size="md">
+                    Open
+                  </Button>
+                ) : (
+                  <span className={styles.clubStatus}>{open ? chatPage.opening : 'Members only'}</span>
+                )}
               </li>
             )
           })}
@@ -132,9 +139,43 @@ export default function AccountHome({ user, profile, account, onChanged }) {
             Sign out
           </Button>
         </div>
+        {account?.blocked?.length > 0 && <BlockedList uids={account.blocked} onChanged={onChanged} />}
         <DeleteAccount />
       </section>
       {account?.consent && <p className={styles.fine}>You accepted the Community Guidelines (version {account.consent.guidelinesVersion}).</p>}
+    </div>
+  )
+}
+
+function BlockedList({ uids, onChanged }) {
+  const [names, setNames] = useState({})
+  const [busy, setBusy] = useState('')
+  useEffect(() => {
+    Promise.all(uids.map((u) => getDoc(doc(db, 'profiles', u)).then((s) => [u, s.data()?.displayName ?? 'Former member']).catch(() => [u, 'Member'])))
+      .then((pairs) => setNames(Object.fromEntries(pairs)))
+  }, [uids])
+  const unblock = async (uid) => {
+    setBusy(uid)
+    try {
+      await callFunction('blockMember', { uid, block: false })
+      await onChanged()
+    } finally {
+      setBusy('')
+    }
+  }
+  return (
+    <div className={styles.blocked}>
+      <h3>Blocked members</h3>
+      <ul>
+        {uids.map((u) => (
+          <li key={u}>
+            <span>{names[u] ?? '…'}</span>
+            <button type="button" className={styles.linkButton} onClick={() => unblock(u)} disabled={busy === u}>
+              Unblock
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

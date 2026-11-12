@@ -157,3 +157,19 @@ test('tier: active or past-due members and running gifts are members', () => {
   assert.equal(tierFor({ gifts: [{ status: 'redeemed', monthsRemaining: 0, lastLetterMonth: '2026-10' }] }, now), 'free')
   assert.equal(tierFor({}, now), 'free')
 })
+
+import { canUseRoom, validateChatMessage } from '../src/validate.js'
+
+test('chat: message text is tidied, room must exist', () => {
+  const { value, errors } = validateChatMessage({ room: 'the-dearly-club', text: '  Hello\r\n\n\n\n\nthere  ' })
+  assert.deepEqual(errors, {})
+  assert.equal(value.text, 'Hello\n\nthere')
+  assert.ok(validateChatMessage({ room: 'nope', text: 'hi' }).errors.room)
+  assert.ok(validateChatMessage({ room: 'the-dearly-club', text: '   ' }).errors.text)
+  assert.equal(validateChatMessage({ room: 'the-dearly-club', text: 'x'.repeat(5000) }).value.text.length, 2000)
+})
+
+test('chat: free room open to all, member rooms to members', () => {
+  assert.equal(canUseRoom('the-dearly-club', 'free'), true)
+  assert.equal(canUseRoom('nope', 'member'), false)
+})

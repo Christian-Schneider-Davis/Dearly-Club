@@ -24,6 +24,7 @@ export default function Dashboard() {
   const gifts = useQuery(() => collection(db, 'gifts'), [])
   const messages = useQuery(() => query(collection(db, 'messages'), where('status', '==', 'new')), [])
   const withdrawals = useQuery(() => query(collection(db, 'withdrawals'), where('status', '==', 'received')), [])
+  const reports = useQuery(() => query(collection(db, 'reports'), where('status', '==', 'open')), [])
 
   const loading = orders.loading || members.loading || gifts.loading
   const error = orders.error || members.error || gifts.error
@@ -71,6 +72,7 @@ export default function Dashboard() {
       to: '/admin/members?status=past_due',
       text: `${failingMembers.length} member${failingMembers.length === 1 ? '' : 's'} with a failed payment (Stripe retries automatically)`,
     },
+    reports.rows.length && { to: '/admin/moderation', text: `${reports.rows.length} reported chat message${reports.rows.length === 1 ? '' : 's'} to review`, urgent: true },
     unsentGifts.length && { to: '/admin/gifts', text: `${unsentGifts.length} paid gift card${unsentGifts.length === 1 ? '' : 's'} not emailed yet` },
   ].filter(Boolean)
 

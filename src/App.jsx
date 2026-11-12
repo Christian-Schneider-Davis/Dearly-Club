@@ -22,6 +22,7 @@ import NotFound from './pages/NotFound'
 const AdminApp = lazy(() => import('./admin/AdminApp'))
 // Same for the community account area (Firebase Auth + Firestore).
 const AccountApp = lazy(() => import('./account/AccountApp'))
+const ChatApp = lazy(() => import('./chat/ChatApp'))
 
 /*
  * Every page of the approved site map. Placeholders are swapped for the real
@@ -42,6 +43,14 @@ export default function App() {
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="dearly-chat" element={<DearlyChat />} />
+        <Route
+          path="dearly-chat/:room"
+          element={
+            <Suspense fallback={null}>
+              <ChatApp />
+            </Suspense>
+          }
+        />
         <Route
           path="account/*"
           element={

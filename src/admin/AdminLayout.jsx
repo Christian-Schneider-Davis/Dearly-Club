@@ -15,6 +15,7 @@ const NAV = [
   { to: 'email', label: 'Email members' },
   { to: 'newsletter', label: 'Newsletter list' },
   { to: 'accounts', label: 'Community' },
+  { to: 'moderation', label: 'Moderation' },
 ]
 
 export default function AdminLayout({ user }) {

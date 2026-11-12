@@ -41,6 +41,27 @@ service cloud.firestore {
       allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
     }
 
+    // Chat rooms: messages are read live in the browser; sending, deleting and
+    // reporting go through the Cloud Functions. The free room is open to every
+    // community member; members' rooms (Phase 11) need the paid tier.
+    function isPaidMember() {
+      return isCommunityMember()
+        && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('tier', 'free') == 'member';
+    }
+    match /rooms/{room}/messages/{id} {
+      allow read: if isAdmin()
+        || (room == 'the-dearly-club' && isCommunityMember())
+        || (room in ['slow-rituals'] && isPaidMember());
+    }
+
+    // Reports and the text of hidden messages: admins only.
+    match /reports/{id} {
+      allow read: if isAdmin();
+    }
+    match /moderation/{id} {
+      allow read: if isAdmin();
+    }
+
     // Lets the admin area check "am I an admin?" for the signed-in user only.
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
