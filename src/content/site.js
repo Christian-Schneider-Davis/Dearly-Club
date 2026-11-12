@@ -160,3 +160,28 @@ export function formatPrice(cents, { currency = 'EUR', locale = 'en-IE' } = {}) 
     minimumFractionDigits: whole ? 0 : 2,
   }).format(cents / 100)
 }
+
+export const membershipPage = {
+  eyebrow: 'The Mail Club',
+  frequencyLabel: 'Frequency',
+  options: {
+    member: { label: 'Subscribe — every month', note: 'Skip or cancel anytime', cta: 'Become a member' },
+    guest: { label: 'One time purchase', note: "A single month's letter, no renewal", cta: 'Send me one letter' },
+  },
+  shippingNote: 'Shipping included, worldwide. Any VAT or sales tax for your country is shown at checkout.',
+  giftNudge: 'Buying for someone else?',
+  steps: [
+    { title: 'Choose your plan', text: 'Become a member for a letter every month, or try a single month as a guest.' },
+    { title: 'Add your address', text: 'Tell us where to send your mail, anywhere in the world. Shipping is included.' },
+    { title: 'Open, write, connect', text: 'Your letter arrives with a prompt and a ritual. Write back to someone you love.' },
+  ],
+  notes: [
+    { title: 'Shipping', text: 'Included in every price, worldwide. Letters are posted once a month.' },
+    { title: 'Taxes', text: 'Any VAT or sales tax due for your country is calculated from your address and shown before you pay. Outside the EU, your country may charge import duties on delivery.' },
+    { title: 'Skip or cancel', text: 'Members can update their address, skip a month or cancel at any time from their account, as easily as signing up.' },
+  ],
+}
+
+export const contactPage = {
+  successPreview: 'Thank you for your message. The contact form goes live with the new site; until then you can reach Ariane on Instagram.',
+}

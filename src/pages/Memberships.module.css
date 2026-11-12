@@ -1,0 +1,257 @@
+.top {
+  padding-top: var(--space-6);
+}
+
+.product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .product {
+    grid-template-columns: 1fr;
+  }
+}
+
+.galleryCol {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-2));
+}
+
+@media (max-width: 900px) {
+  .galleryCol {
+    position: static;
+  }
+}
+
+.buy {
+  display: grid;
+  gap: var(--space-6);
+  padding-top: var(--space-2);
+}
+
+.title {
+  font-size: var(--text-h1);
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.amount {
+  font-family: var(--font-display);
+  font-size: var(--text-price);
+  line-height: 1;
+}
+
+.period {
+  color: var(--text-muted);
+}
+
+.description {
+  margin-top: var(--space-4);
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+}
+
+.ctaBlock {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.fine {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.perks {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-5) 0 0;
+  border-top: 1px solid var(--color-line);
+  list-style: none;
+}
+
+.perks li {
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.perks li::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.5em;
+  width: 0.5rem;
+  height: 0.85rem;
+  border: solid var(--accent);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.shipping {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.gift {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.centerHead {
+  max-width: 40rem;
+  margin: 0 auto var(--space-7);
+  text-align: center;
+}
+
+.items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-cream);
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.itemIcon {
+  color: var(--accent);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-ink);
+  color: var(--text-muted);
+}
+
+.stepNum {
+  display: block;
+  margin-bottom: var(--space-3);
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.stepTitle {
+  margin-bottom: var(--space-2);
+  font-size: 1.75rem;
+  color: var(--text);
+}
+
+.notesWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+  gap: var(--space-7);
+}
+
+@media (max-width: 800px) {
+  .notesWrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.notesTitle {
+  font-size: var(--text-h2);
+}
+
+.notes {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.note {
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid rgb(43 38 34 / 0.15);
+}
+
+.note dt {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+
+.note dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* Phone sticky buy bar */
+.bar {
+  position: fixed;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: var(--z-header);
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-pill);
+  background: rgb(251 248 243 / 0.94);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateY(150%);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.bar[data-show='true'] {
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .bar {
+    display: flex;
+  }
+}
+
+.barName {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.barPrice {
+  white-space: nowrap;
+}
+
+.barPrice {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
