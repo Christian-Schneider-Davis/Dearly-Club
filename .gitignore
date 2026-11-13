@@ -11,3 +11,4 @@ firebase-debug.log*
 firestore-debug.log*
 .vscode/*
 !.vscode/extensions.json
+README.md
