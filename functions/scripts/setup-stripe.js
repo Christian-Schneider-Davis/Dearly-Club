@@ -18,13 +18,13 @@
 import Stripe from 'stripe'
 
 const key = process.env.STRIPE_SECRET_KEY
-if (!key?.startsWith('sk_')) {
-  console.error('Set STRIPE_SECRET_KEY first (sk_test_... while testing).')
+if (!/^(sk|rk)_(test|live)_/.test(key || '')) {
+  console.error('Set STRIPE_SECRET_KEY first (sk_ or rk_ key, test key while testing).')
   process.exit(1)
 }
 const stripe = new Stripe(key)
 const taxBehavior = process.env.TAX_BEHAVIOR === 'inclusive' ? 'inclusive' : 'exclusive'
-const mode = key.startsWith('sk_live_') ? 'LIVE' : 'TEST'
+const mode = /^(sk|rk)_live_/.test(key) ? 'LIVE' : 'TEST'
 
 const PRODUCTS = [
   {
