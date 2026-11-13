@@ -10,7 +10,10 @@ import { ALLOWED_ORIGINS } from './validate.js'
 initializeApp()
 export const db = getFirestore()
 
-setGlobalOptions({ region: 'europe-west1', maxInstances: 10 })
+// Light by default: a small fraction of a CPU and at most 3 copies of each function.
+// Plenty for a mail club, cheap, and within a new project's Cloud Run CPU quota.
+// Raise maxInstances (or set cpu: 1) on a single busy function if it ever needs it.
+setGlobalOptions({ region: 'europe-west1', maxInstances: 3, cpu: 'gcf_gen1', memory: '256MiB' })
 
 export const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY')
 export const STRIPE_WEBHOOK_SECRET = defineSecret('STRIPE_WEBHOOK_SECRET')

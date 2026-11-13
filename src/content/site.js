@@ -204,7 +204,7 @@ export const contactPage = {
  * cancel. The login link is printed by `npm run setup:stripe` in functions/.
  */
 export const stripeLinks = {
-  portalLoginUrl: '', // e.g. https://billing.stripe.com/p/login/test_XXXX
+  portalLoginUrl: 'https://billing.stripe.com/p/login/test_3cI8wO2GQ1AA9Gs8eQ3Nm00', // e.g. https://billing.stripe.com/p/login/test_XXXX
 }
 
 export const checkoutPage = {

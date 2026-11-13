@@ -1,6 +1,6 @@
 /**
  * Email templates. Emails are queued in the Firestore `mail` collection and
- * sent by Firebase's "Trigger Email from Firestore" extension (see README).
+ * sent by our own `sendQueuedEmail` function through Brevo (mailer.js, see README).
  * Anything a customer typed is escaped before it goes into HTML.
  */
 import { FieldValue } from 'firebase-admin/firestore'
@@ -98,7 +98,7 @@ export function giftRedeemedEmail({ customer, months: n, shipping }) {
   return { to: customer.email, message: { subject: 'Your Dearly Club gift is redeemed', text, html } }
 }
 
-/** Queue an email for the Trigger Email extension. */
+/** Queue an email; mailer.js sends it. */
 export function queueEmail(mail, tx) {
   const ref = db.collection('mail').doc()
   const data = { ...mail, createdAt: FieldValue.serverTimestamp() }

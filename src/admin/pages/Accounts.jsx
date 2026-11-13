@@ -19,10 +19,12 @@ export default function Accounts() {
   const [open, setOpen] = useState(null)
   const profiles = useQuery(() => collection(db, 'profiles'), [])
   const users = useQuery(() => collection(db, 'users'), [])
+  const comp = useQuery(() => collection(db, 'complimentary'), [])
+  const lifetime = new Set(comp.rows.map((c) => c.id))
 
   const byId = Object.fromEntries(users.rows.map((u) => [u.id, u]))
   const rows = profiles.rows
-    .map((p) => ({ ...p, private: byId[p.id] ?? {} }))
+    .map((p) => ({ ...p, private: byId[p.id] ?? {}, lifetime: lifetime.has(byId[p.id]?.email) }))
     .sort((a, b) => (toDate(b.joinedAt) ?? 0) - (toDate(a.joinedAt) ?? 0))
   const visible = rows.filter(
     (r) =>
@@ -53,6 +55,7 @@ export default function Accounts() {
           </Button>
         }
       />
+      <LifetimeBox emails={comp.rows} onChanged={() => (comp.reload(), profiles.reload())} />
       <div className={styles.toolbar}>
         <Select
           label="Show"
@@ -92,19 +95,92 @@ export default function Accounts() {
                   </td>
                   <td>{countryName(r.country)}</td>
                   <td>{fmtDate(r.joinedAt)}</td>
-                  <td>{r.suspended ? <Badge status="failed" label="paused" /> : <Badge status={r.tier === 'member' ? 'active' : 'pending'} label={r.tier === 'member' ? 'member' : 'free'} />}</td>
+                  <td>
+                    {r.suspended ? (
+                      <Badge status="failed" label="paused" />
+                    ) : (
+                      <Badge status={r.tier === 'member' ? 'active' : 'pending'} label={r.lifetime ? 'lifetime' : r.tier === 'member' ? 'member' : 'free'} />
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </LoadState>
-      {open && <AccountDrawer account={open} onClose={() => setOpen(null)} onChange={update} />}
+      {open && (
+        <AccountDrawer
+          account={{ ...open, lifetime: lifetime.has(open.private.email) }}
+          onClose={() => setOpen(null)}
+          onChange={update}
+          onLifetime={() => (comp.reload(), profiles.reload())}
+        />
+      )}
     </>
   )
 }
 
-function AccountDrawer({ account: a, onClose, onChange }) {
+/** Give someone a complimentary lifetime membership by email (works before they have an account). */
+function LifetimeBox({ emails, onChanged }) {
+  const [email, setEmail] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState({ type: '', text: '' })
+  const give = async (e) => {
+    e.preventDefault()
+    setBusy(true)
+    setMsg({ type: '', text: '' })
+    try {
+      await callFunction('adminSetLifetime', { email: email.trim(), lifetime: true })
+      setMsg({ type: 'info', text: `${email.trim()} now has a lifetime membership.` })
+      setEmail('')
+      onChanged()
+    } catch (err) {
+      setMsg({ type: 'error', text: readCallError(err).message })
+    } finally {
+      setBusy(false)
+    }
+  }
+  const remove = async (address) => {
+    if (!window.confirm(`Remove the lifetime membership for ${address}?`)) return
+    try {
+      await callFunction('adminSetLifetime', { email: address, lifetime: false })
+      onChanged()
+    } catch (err) {
+      window.alert(readCallError(err).message)
+    }
+  }
+  return (
+    <section className={styles.panel}>
+      <h2 className={styles.panelTitle}>Lifetime memberships</h2>
+      <p className={styles.muted}>Free, permanent member access to the Dearly Chat clubs (no subscription needed). Admins always have it. Applies to the account using that email, now or when they join.</p>
+      <form className={styles.toolbar} onSubmit={give}>
+        <input type="email" className={styles.search} placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Email for lifetime membership" required />
+        <Button type="submit" size="md" disabled={busy || !email.trim()}>
+          Give lifetime membership
+        </Button>
+      </form>
+      {msg.text && (
+        <p className={msg.type === 'error' ? styles.formError : styles.formInfo} role={msg.type === 'error' ? 'alert' : 'status'}>
+          {msg.text}
+        </p>
+      )}
+      {emails.length > 0 && (
+        <ul className={styles.sentList}>
+          {emails.map((c) => (
+            <li key={c.id}>
+              <strong>{c.id}</strong>{' '}
+              <button type="button" className={styles.linkButton} onClick={() => remove(c.id)}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function AccountDrawer({ account: a, onClose, onChange, onLifetime }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const toggle = async () => {
@@ -124,7 +200,7 @@ function AccountDrawer({ account: a, onClose, onChange }) {
   return (
     <Drawer title={a.displayName} onClose={onClose}>
       <dl className={styles.details}>
-        <Detail label="Account">{a.suspended ? 'Paused' : a.tier === 'member' ? 'Member (paid)' : 'Free'}</Detail>
+        <Detail label="Account">{a.suspended ? 'Paused' : a.lifetime ? 'Lifetime member (complimentary)' : a.tier === 'member' ? 'Member' : 'Free'}</Detail>
         <Detail label="Email">{a.private.email && <a href={`mailto:${a.private.email}`}>{a.private.email}</a>}</Detail>
         <Detail label="Country">{countryName(a.country)}</Detail>
         <Detail label="Joined">{fmtDate(a.joinedAt)}</Detail>
@@ -132,8 +208,29 @@ function AccountDrawer({ account: a, onClose, onChange }) {
         <Detail label="Interests">{a.interests?.join(', ')}</Detail>
         <Detail label="Guidelines">{a.private.consent && `v${a.private.consent.guidelinesVersion}, 18+ confirmed, ${fmtDate(a.private.consent.at)}`}</Detail>
       </dl>
-      <p className={styles.footnote}>Member or free is set automatically from the email: an active membership or a running gift membership makes it “member”.</p>
+      <p className={styles.footnote}>Member or free is set automatically from the email: an active or gift membership, a lifetime membership, or being an admin makes it “member”.</p>
       <div className={styles.drawerActions}>
+        {a.private.email && (
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              setError('')
+              try {
+                await callFunction('adminSetLifetime', { email: a.private.email, lifetime: !a.lifetime })
+                onLifetime()
+                onClose()
+              } catch (err) {
+                setError(readCallError(err).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          >
+            {a.lifetime ? 'Remove lifetime membership' : 'Give lifetime membership'}
+          </Button>
+        )}
         <Button variant={a.suspended ? 'primary' : 'outline'} onClick={toggle} disabled={busy}>
           {a.suspended ? 'Restore account' : 'Pause account'}
         </Button>

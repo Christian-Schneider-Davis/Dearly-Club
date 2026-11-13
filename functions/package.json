@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "main": "src/index.js",
-  "engines": { "node": "22" },
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "test": "node --test test/*.test.js",
     "setup:stripe": "node scripts/setup-stripe.js",
@@ -13,6 +15,7 @@
   "dependencies": {
     "firebase-admin": "^14.5.1",
     "firebase-functions": "^7.4.0",
+    "nodemailer": "^10.5.0",
     "stripe": "^23.1.0"
   }
 }

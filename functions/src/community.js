@@ -35,11 +35,18 @@ async function requireMember(request) {
   return { uid: request.auth.uid, email: token.email.toLowerCase(), user }
 }
 
-async function computeTier(email) {
-  const [members, gifts] = await Promise.all([
+/**
+ * "member" or "free". Lifetime (complimentary) members and admins are always members;
+ * otherwise it comes from an active membership or a running gift.
+ */
+async function computeTier(email, uid) {
+  const [members, gifts, comp, admin] = await Promise.all([
     db.collection('members').where('email', '==', email).get(),
     db.collection('gifts').where('redeemedBy.email', '==', email).get(),
+    db.collection('complimentary').doc(email).get(),
+    uid ? db.collection('admins').doc(uid).get() : null,
   ])
+  if (comp.exists || admin?.exists) return 'member'
   return tierFor({ members: members.docs.map((d) => d.data()), gifts: gifts.docs.map((d) => d.data()) })
 }
 
@@ -56,7 +63,7 @@ export const saveProfile = onCall({ cors }, async (request) => {
   const { value, errors } = validateProfile(request.data, isNew)
   if (Object.keys(errors).length) throw new HttpsError('invalid-argument', 'Please check the highlighted fields.', { fields: errors })
 
-  const [tier, adminSnap] = await Promise.all([computeTier(email), db.collection('admins').doc(uid).get()])
+  const [tier, adminSnap] = await Promise.all([computeTier(email, uid), db.collection('admins').doc(uid).get()])
   const now = FieldValue.serverTimestamp()
   const batch = db.batch()
   batch.set(
@@ -83,7 +90,7 @@ export const saveProfile = onCall({ cors }, async (request) => {
 export const refreshMembership = onCall({ cors }, async (request) => {
   const { uid, email, user } = await requireMember(request)
   if (!user?.createdAt) return { tier: 'free' }
-  const tier = await computeTier(email)
+  const tier = await computeTier(email, uid)
   await writeTier(uid, tier)
   return { tier }
 })
@@ -106,8 +113,10 @@ async function syncEmails(emails) {
   for (const email of new Set(emails.filter(Boolean).map((e) => e.toLowerCase()))) {
     const users = await db.collection('users').where('email', '==', email).get()
     if (users.empty) continue
-    const tier = await computeTier(email)
-    await Promise.all(users.docs.filter((d) => d.data().tier !== tier).map((d) => writeTier(d.id, tier)))
+    for (const d of users.docs) {
+      const tier = await computeTier(email, d.id)
+      if (d.data().tier !== tier) await writeTier(d.id, tier)
+    }
   }
 }
 
@@ -124,6 +133,18 @@ export const syncTierOnGift = onDocumentWritten('gifts/{id}', async (event) => {
   const key = (g) => `${g?.status}|${g?.monthsRemaining}|${g?.lastLetterMonth}|${g?.redeemedBy?.email}`
   if (key(before) === key(after)) return
   await syncEmails([before?.redeemedBy?.email, after?.redeemedBy?.email])
+})
+
+/** Admin: give (or take back) a complimentary lifetime membership, by email. */
+export const adminSetLifetime = onCall({ cors }, async (request) => {
+  const adminUid = await requireAdmin(request)
+  const email = String(request.data?.email ?? '').trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new HttpsError('invalid-argument', 'A valid email is required.')
+  const ref = db.collection('complimentary').doc(email)
+  if (request.data?.lifetime === false) await ref.delete()
+  else await ref.set({ email, note: String(request.data?.note ?? '').slice(0, 200), grantedBy: adminUid, grantedAt: FieldValue.serverTimestamp() })
+  await syncEmails([email])
+  return { ok: true }
 })
 
 export const adminSetSuspended = onCall({ cors }, async (request) => {

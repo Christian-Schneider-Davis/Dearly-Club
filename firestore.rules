@@ -40,6 +40,10 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
     }
+    // Complimentary lifetime memberships (by email), granted by admins via a function.
+    match /complimentary/{email} {
+      allow read: if isAdmin();
+    }
 
     // Chat rooms: messages are read live in the browser; sending, deleting and
     // reporting go through the Cloud Functions. The free room is open to every

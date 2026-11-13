@@ -7,7 +7,7 @@ dist
 .DS_Store
 Thumbs.db
 npm-debug.log*
+firebase-debug.log*
+firestore-debug.log*
 .vscode/*
 !.vscode/extensions.json
-README.md
-.env.example
