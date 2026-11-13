@@ -45,7 +45,7 @@ export default function GiftSuccess() {
           <h1 className={styles.title}>
             What a lovely thing to send.
             <br />
-            <em>{gift?.months ? `${gift.months} months of letters` : 'Your gift'} for {name}.</em>
+            <em>{gift?.months ? `${gift.months} month${gift.months === 1 ? '' : 's'} of letters` : 'Your gift'} for {name}.</em>
           </h1>
           <p className={styles.muted}>
             We'll email the gift card{gift?.recipientEmail ? ` to ${gift.recipientEmail}` : ''} {when}. You'll get a confirmation with the gift code too, so you can pass it on yourself if you prefer.

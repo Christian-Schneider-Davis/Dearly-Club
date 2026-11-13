@@ -106,7 +106,7 @@ export default function Redeem() {
             <h1 className={styles.title}>
               Welcome to Dearly Club, {done.firstName}.
               <br />
-              <em>Your {done.months} months of letters begin now.</em>
+              <em>Your {done.months === 1 ? 'month' : `${done.months} months`} of letters begin{done.months === 1 ? 's' : ''} now.</em>
             </h1>
             <p className={styles.lead}>
               Your first letter is {firstLetter().letterMonth}'s, posted 20–25 {firstLetter().postedMonth}. We've emailed you a confirmation with your delivery address.

@@ -23,6 +23,7 @@ const columns = [
       { label: 'Our story', to: '/about' },
       { label: 'Contact', to: '/contact' },
       { label: 'Log in', to: '/account' },
+      { label: 'Admin', to: '/admin' },
     ],
   },
   {
@@ -67,7 +68,6 @@ export default function SiteFooter() {
       <Container className={styles.bottom}>
         <p>{brand.copyright}</p>
         <div className={styles.bottomLinks}>
-          <Link to="/legal/withdraw">Withdraw from contract here</Link>
           <button type="button" className={styles.linkButton} onClick={openSettings}>
             Cookie settings
           </button>

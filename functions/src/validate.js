@@ -91,6 +91,7 @@ export function safeReturnBase(returnBase) {
 /* ------------------------------------------------------------------ */
 
 export const GIFTS = {
+  1: { lookupKey: 'dearly_gift_1m', months: 1 },
   3: { lookupKey: 'dearly_gift_3m', months: 3 },
   6: { lookupKey: 'dearly_gift_6m', months: 6 },
   12: { lookupKey: 'dearly_gift_12m', months: 12 },
@@ -106,7 +107,7 @@ export const parisDate = (d = new Date()) =>
 export function validateGift(input = {}, today = parisDate()) {
   const errors = {}
   const months = Number(input.months)
-  if (!GIFTS[months]) errors.months = 'Choose 3, 6 or 12 months.'
+  if (!GIFTS[months]) errors.months = 'Choose 1, 3, 6 or 12 months.'
 
   const b = input.buyer ?? {}
   const r = input.recipient ?? {}

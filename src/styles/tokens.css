@@ -37,6 +37,7 @@
   /* Type */
   --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-body: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-hand: 'La Belle Aurore', 'Segoe Script', 'Brush Script MT', cursive;
 
   --text-xs: 0.8125rem;   /* 13px — eyebrows, fine print */
   --text-sm: 0.875rem;    /* 14px */

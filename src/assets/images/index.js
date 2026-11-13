@@ -12,8 +12,8 @@ const pictures = import.meta.glob('./*.jpg', {
 // file name → alt text (describe what's in the photo, for screen readers)
 const library = {
   'envelope-illustration': 'Engraved illustration of an open envelope holding a card',
-  'ariane-painting': 'Ariane Lignier at her table with watercolour paints',
-  'ariane-portrait': 'Portrait of Ariane Lignier, founder of Dearly Club',
+  'ariane-painting': 'Ariane at her table with watercolour paints',
+  'ariane-portrait': 'Portrait of Ariane, founder of Dearly Club',
   'blue-watercolour-palo-santo': 'Blue watercolour card with palo santo on a burgundy Dearly Club envelope',
   'blue-watercolour-sunglasses': 'Blue watercolour postcard with stickers, sunglasses and a pen',
   'letter-flower-sketch': 'Handwritten letter with a flower sketch and a pen beside a Dearly Club envelope',

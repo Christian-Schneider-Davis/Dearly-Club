@@ -14,7 +14,7 @@ export default function GiftCardPreview({ months, recipientName, buyerName, mess
         <div className={styles.body}>
           <p className={styles.for}>A gift for {to}</p>
           <p className={styles.title}>
-            {months} months of <em>Dearly Club</em>
+            {months} month{months === 1 ? '' : 's'} of <em>Dearly Club</em>
           </p>
           {message?.trim() && <p className={styles.message}>“{message.trim()}”</p>}
           {buyerName?.trim() && <p className={styles.from}>— {buyerName.trim()}</p>}

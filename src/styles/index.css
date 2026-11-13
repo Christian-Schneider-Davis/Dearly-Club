@@ -5,6 +5,8 @@
 @import '@fontsource/cormorant-garamond/600.css';
 @import '@fontsource/jost/400.css';
 @import '@fontsource/jost/500.css';
+/* Handwritten signature on the founder's letter (only downloaded where it's used). */
+@import '@fontsource/la-belle-aurore/latin-400.css';
 
 @import './tokens.css';
 @import './base.css';

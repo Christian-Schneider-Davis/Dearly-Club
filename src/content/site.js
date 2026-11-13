@@ -6,19 +6,19 @@
 
 export const brand = {
   name: 'Dearly Club',
-  founder: 'Ariane Lignier',
+  founder: 'Ariane',
   tagline: 'Create deeper connection, one letter at a time.', // verbatim
   seoTitle: 'Dearly Club | online thoughtful monthly mail club', // verbatim
-  copyright: '© 2026 by Ariane Lignier', // verbatim
+  copyright: '© 2026 Dearly Club',
 }
 
 /* Search & share descriptions per page (under ~155 characters). */
 export const seo = {
   '/': 'Create deeper connection, one letter at a time. A monthly mail club with a hand-painted postcard, a paper letter, a writing prompt and a connection ritual.',
   '/memberships': 'Join Dearly Club for €9 a month, or try a single letter for €9. Shipping included worldwide. Cancel any time.',
-  '/gift': 'Give 3, 6 or 12 months of Dearly Club: hand-painted letters in their mailbox every month, with an e-gift card sent by email.',
+  '/gift': 'Give 1, 3, 6 or 12 months of Dearly Club: hand-painted letters in their mailbox every month, with an e-gift card sent by email.',
   '/redeem': 'Received a Dearly Club gift? Enter your code and address to start your monthly letters.',
-  '/about': 'Meet Ariane Lignier, the founder of Dearly Club, and why she believes in the slow joy of letters.',
+  '/about': 'Meet Ariane, the founder of Dearly Club, and why she believes in the slow joy of letters.',
   '/contact': 'Questions about Dearly Club? Write to Ariane, or find us on Instagram and TikTok @dearly.club.',
   '/dearly-chat': 'The Dearly Chat: a gentle online community for letter writers, pen pals and slow rituals.',
 }
@@ -153,6 +153,7 @@ export const plans = [
 ]
 
 export const giftOptions = [
+  { months: 1, priceCents: 900 },
   { months: 3, priceCents: 2700 },
   { months: 6, priceCents: 5400 },
   { months: 12, priceCents: 10800 },

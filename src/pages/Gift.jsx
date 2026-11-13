@@ -136,7 +136,7 @@ export default function Gift() {
                     onChange={() => setValues((s) => ({ ...s, months: g.months }))}
                     className={styles.radio}
                   />
-                  <span className={styles.durationMonths}>{g.months} months</span>
+                  <span className={styles.durationMonths}>{g.months} month{g.months === 1 ? '' : 's'}</span>
                   <span className={styles.durationPrice}>{formatPrice(g.priceCents)}</span>
                 </label>
               ))}
@@ -209,7 +209,7 @@ export default function Gift() {
           <ol className={styles.how}>
             <li>They get the gift card by email, on the date you choose.</li>
             <li>They enter the code and their address. No payment needed.</li>
-            <li>Their letters arrive every month for {values.months} months.</li>
+            <li>{values.months === 1 ? 'Their letter arrives next month.' : `Their letters arrive every month for ${values.months} months.`}</li>
           </ol>
           <p className={styles.redeem}>
             Received a gift? <Link to="/redeem">Redeem it here</Link>

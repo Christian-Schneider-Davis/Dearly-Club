@@ -6,7 +6,7 @@
  *
  * Creates:
  *  - Products + prices "Dearly Member" (€9/month), "Dearly Guest" (€9 once) and
- *    gift memberships of 3, 6 and 12 months (€27, €54, €108),
+ *    gift memberships of 1, 3, 6 and 12 months (€9, €27, €54, €108),
  *    found later by their lookup keys
  *  - The customer self-service portal (update address/card, skip via pause, cancel)
  *    and prints its login link for the website
@@ -41,10 +41,10 @@ const PRODUCTS = [
       'One month: a hand painted postcard, paper letter, a writing prompt, a connection ritual and stickers. Worldwide shipping.',
     price: { unit_amount: 900, currency: 'eur' },
   },
-  ...[3, 6, 12].map((m) => ({
+  ...[1, 3, 6, 12].map((m) => ({
     lookupKey: `dearly_gift_${m}m`,
-    name: `Dearly Club Gift — ${m} months`,
-    description: `A gift of ${m} months of Dearly Club letters, delivered as an e-gift card. Worldwide shipping.`,
+    name: `Dearly Club Gift — ${m} month${m === 1 ? '' : 's'}`,
+    description: `A gift of ${m} month${m === 1 ? '' : 's'} of Dearly Club letters, delivered as an e-gift card. Worldwide shipping.`,
     price: { unit_amount: 900 * m, currency: 'eur' },
   })),
 ]

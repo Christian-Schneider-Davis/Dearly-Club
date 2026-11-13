@@ -72,7 +72,7 @@ export default function Gifts() {
                     <span className={styles.sub}>{g.recipient?.email}</span>
                   </td>
                   <td>
-                    {g.months} months
+                    {g.months} month{g.months === 1 ? '' : 's'}
                     {g.status === 'redeemed' && <span className={styles.sub}>{g.monthsRemaining ?? 0} left</span>}
                   </td>
                   <td>

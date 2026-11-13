@@ -12,15 +12,7 @@ import usePageTitle from '../hooks/usePageTitle'
 import { firstLetter } from '../lib/shipping'
 import styles from './Memberships.module.css'
 
-const photos = [
-  images.flowerCardPressedFlowers,
-  images.poppyCardPen,
-  images.purpleWatercolour1,
-  images.watercolourMarketBag,
-  images.blueWatercolourPaloSanto,
-  images.letterFlowerSketch,
-  images.shapeOfTheYear3,
-]
+const photos = [images.watercolourMarketBag]
 
 const icons = ['postcard', 'letter', 'pen', 'ritual', 'sticker', 'gift']
 

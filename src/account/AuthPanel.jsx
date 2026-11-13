@@ -135,6 +135,9 @@ export default function AuthPanel() {
         By creating an account you confirm you’re 18 or older. See our <Link to="/legal/community-guidelines">Community Guidelines</Link> and{' '}
         <Link to="/legal/privacy">Privacy Policy</Link>.
       </p>
+      <p className={styles.withdraw}>
+        Bought something in the last 14 days and changed your mind? <Link to="/legal/withdraw">Withdraw from contract here</Link>
+      </p>
     </div>
   )
 }

@@ -146,10 +146,9 @@
 }
 
 .signature {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 3rem;
-  line-height: 1;
+  font-family: var(--font-hand);
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 1.35;
   color: var(--accent);
 }
 

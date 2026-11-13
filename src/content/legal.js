@@ -45,7 +45,7 @@ export const legalDocs = {
             list: [
               'Dearly Member: €9 per month, renewing automatically every month until you cancel.',
               'Dearly Guest: €9 for a single month’s letter, no renewal.',
-              'Gift membership: €27 (3 months), €54 (6 months) or €108 (12 months), paid once, no renewal.',
+              'Gift membership: €9 (1 month), €27 (3 months), €54 (6 months) or €108 (12 months), paid once, no renewal.',
             ],
           },
           'Prices are in euros. Shipping is included worldwide. Any VAT or sales tax due for your country is calculated from your address and shown before you pay. Outside the EU, your country may charge import duties or fees on delivery; these are paid by the recipient.',

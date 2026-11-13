@@ -53,12 +53,12 @@ export default function HomePlans() {
 
           <Reveal delay={200} className={`${styles.plan} ${styles.planGift}`}>
             <p className={styles.planTag}>For someone dear</p>
-            <h3 className={styles.planName}>Gift Membership</h3>
+            <h3 className={styles.planName}>Dearly Gift</h3>
             <p className={styles.price}>
               from <span>{formatPrice(giftFrom)}</span>
             </p>
             <ul className={styles.perks}>
-              <li>3, 6 or 12 months</li>
+              <li>1, 3, 6 or 12 months</li>
               <li>Sent by email with your message</li>
               <li>No address needed — they add their own</li>
             </ul>
