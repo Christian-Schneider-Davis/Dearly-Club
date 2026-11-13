@@ -10,6 +10,7 @@ import { readCallError } from '../lib/callErrors'
 import { callFunction } from '../lib/firebase'
 import { auth, db } from '../lib/session'
 import Avatar from './Avatar'
+import MemberBadge from '../components/ui/MemberBadge'
 import ProfileForm from './ProfileForm'
 import styles from './account.module.css'
 
@@ -50,7 +51,7 @@ export default function AccountHome({ user, profile, account, onChanged }) {
       <section className={styles.profileCard} aria-labelledby="me">
         <Avatar name={profile.displayName} color={profile.avatarColor} size={88} />
         <div className={styles.profileText}>
-          <Eyebrow>{isMember ? 'Dearly Member' : 'Free account'}</Eyebrow>
+          {isMember ? <MemberBadge size={20} label className={styles.memberLabel} /> : <Eyebrow>Free account</Eyebrow>}
           <h1 id="me" className={styles.title}>
             {profile.displayName}
           </h1>

@@ -5,10 +5,12 @@ import Button from '../components/ui/Button'
 import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import ResponsiveImage from '../components/ui/ResponsiveImage'
 import Newsletter from '../components/sections/Newsletter'
+import { isMemberHint, useSessionHint } from '../lib/sessionHint'
 import usePageTitle from '../hooks/usePageTitle'
 import styles from './About.module.css'
 
 export default function About() {
+  const member = isMemberHint(useSessionHint())
   usePageTitle('About')
   return (
     <>
@@ -55,9 +57,15 @@ export default function About() {
             <Eyebrow>Join the club</Eyebrow>
             <h2 className={styles.ctaTitle}>Your first letter is one step away.</h2>
             <div className={styles.ctaActions}>
-              <Button to="/memberships" variant="light" size="lg">
-                Become a member
-              </Button>
+              {member ? (
+                <Button to="/manage" variant="light" size="lg">
+                  Manage my membership
+                </Button>
+              ) : (
+                <Button to="/memberships" variant="light" size="lg">
+                  Become a member
+                </Button>
+              )}
               <Button to="/gift" variant="outline-light" size="lg">
                 Gift a membership
               </Button>

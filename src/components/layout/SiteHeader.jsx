@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { brand, mainNav } from '../../content/site'
 import useScrolled from '../../hooks/useScrolled'
+import { isMemberHint, useSessionHint } from '../../lib/sessionHint'
+import MemberBadge from '../ui/MemberBadge'
 import Button from '../ui/Button'
 import Icon from '../ui/Icon'
 import Logo from '../ui/Logo'
@@ -23,6 +25,8 @@ export default function SiteHeader({ overHero = false }) {
   const closeMenu = useCallback(() => setMenuOpen(false), [])
   useEffect(() => setMenuOpen(false), [pathname])
 
+  const session = useSessionHint()
+  const member = isMemberHint(session)
   const mode = scrolled ? 'pill' : overHero ? 'hero' : 'top'
   const onDark = mode === 'hero'
 
@@ -47,13 +51,27 @@ export default function SiteHeader({ overHero = false }) {
           </nav>
 
           <div className={styles.actions}>
-            <NavLink to="/account" className={`${styles.link} ${styles.login}`}>
-              Log in
+            <NavLink to="/account" className={`${styles.link} ${styles.login}`} aria-label={session ? 'Your account' : undefined}>
+              {session ? (
+                <span className={styles.me}>
+                  {member && <MemberBadge size={16} />}
+                  <span className={styles.meName}>{session.name || 'Account'}</span>
+                </span>
+              ) : (
+                'Log in'
+              )}
             </NavLink>
-            <Button to="/memberships" variant={onDark ? 'light' : 'primary'} className={styles.join}>
-              <span className={styles.joinLong}>Join the Mail Club</span>
-              <span className={styles.joinShort}>Join</span>
-            </Button>
+            {member ? (
+              <Button to="/gift" variant={onDark ? 'light' : 'primary'} className={styles.join}>
+                <span className={styles.joinLong}>Gift a membership</span>
+                <span className={styles.joinShort}>Gift</span>
+              </Button>
+            ) : (
+              <Button to="/memberships" variant={onDark ? 'light' : 'primary'} className={styles.join}>
+                <span className={styles.joinLong}>Join the Mail Club</span>
+                <span className={styles.joinShort}>Join</span>
+              </Button>
+            )}
             <button
               type="button"
               className={styles.menuButton}

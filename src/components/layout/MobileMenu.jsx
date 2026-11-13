@@ -4,6 +4,8 @@ import { mainNav, social } from '../../content/site'
 import Button from '../ui/Button'
 import Icon from '../ui/Icon'
 import Logo from '../ui/Logo'
+import MemberBadge from '../ui/MemberBadge'
+import { isMemberHint, useSessionHint } from '../../lib/sessionHint'
 import styles from './MobileMenu.module.css'
 
 /**
@@ -12,6 +14,8 @@ import styles from './MobileMenu.module.css'
  * Escape or the close button shuts it; focus stays inside while open.
  */
 export default function MobileMenu({ id, open, onClose }) {
+  const session = useSessionHint()
+  const member = isMemberHint(session)
   const panel = useRef(null)
   const closeBtn = useRef(null)
 
@@ -78,16 +82,29 @@ export default function MobileMenu({ id, open, onClose }) {
           ))}
           <li style={{ '--i': mainNav.length }}>
             <NavLink to="/account" onClick={onClose} className={styles.login}>
-              Log in
+              {session ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {member && <MemberBadge size={20} />}
+                  Your account
+                </span>
+              ) : (
+                'Log in'
+              )}
             </NavLink>
           </li>
         </ul>
       </nav>
 
       <div className={styles.footer}>
-        <Button to="/memberships" variant="light" size="lg" block onClick={onClose}>
-          Join the Mail Club
-        </Button>
+        {member ? (
+          <Button to="/gift" variant="light" size="lg" block onClick={onClose}>
+            Gift a membership
+          </Button>
+        ) : (
+          <Button to="/memberships" variant="light" size="lg" block onClick={onClose}>
+            Join the Mail Club
+          </Button>
+        )}
         <div className={styles.social}>
           {social.map((s) => (
             <a key={s.href} href={s.href} target="_blank" rel="noreferrer" aria-label={`Dearly Club on ${s.label}`}>

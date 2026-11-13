@@ -1,11 +1,13 @@
 import { home } from '../../content/site'
 import { roles } from '../../assets/images'
 import ParallaxImage from '../motion/ParallaxImage'
+import { isMemberHint, useSessionHint } from '../../lib/sessionHint'
 import Button from '../ui/Button'
 import { Container } from '../ui/Layout'
 import styles from './home.module.css'
 
 export default function HomeHero() {
+  const member = isMemberHint(useSessionHint())
   const { hero } = home
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
@@ -33,12 +35,25 @@ export default function HomeHero() {
           Create deeper connection, <em>one letter at a time.</em>
         </h1>
         <div className={`${styles.heroActions} rise-in`} style={{ '--rise-delay': '500ms' }}>
-          <Button to="/memberships" size="lg" variant="light">
-            {hero.cta}
-          </Button>
-          <Button to="/gift" size="lg" variant="outline-light">
-            {hero.secondaryCta}
-          </Button>
+          {member ? (
+            <>
+              <Button to="/gift" size="lg" variant="light">
+                Gift a membership
+              </Button>
+              <Button to="/manage" size="lg" variant="outline-light">
+                Manage my membership
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button to="/memberships" size="lg" variant="light">
+                {hero.cta}
+              </Button>
+              <Button to="/gift" size="lg" variant="outline-light">
+                {hero.secondaryCta}
+              </Button>
+            </>
+          )}
         </div>
       </Container>
 

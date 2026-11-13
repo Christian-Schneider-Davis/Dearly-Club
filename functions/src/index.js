@@ -19,6 +19,7 @@ import {
   cors,
   db,
   priceByLookupKey,
+  rateLimit,
   stripe,
   toStripeAddress,
 } from './shared.js'
@@ -42,6 +43,7 @@ export const createCheckoutSession = onCall({ secrets: [STRIPE_SECRET_KEY], cors
   if (Object.keys(errors).length) {
     throw new HttpsError('invalid-argument', 'Please check the highlighted fields.', { fields: errors })
   }
+  await rateLimit(request.rawRequest?.ip, 'checkout', 20)
   const base = safeReturnBase(request.data?.returnBase)
   if (!base) throw new HttpsError('invalid-argument', 'Unknown site address.')
 
@@ -51,12 +53,16 @@ export const createCheckoutSession = onCall({ secrets: [STRIPE_SECRET_KEY], cors
   const fullName = `${customer.firstName} ${customer.lastName}`.trim()
   const address = toStripeAddress(shipping)
 
-  // Reuse the Stripe customer for this email, keeping name and address current.
-  const existing = await stripe().customers.list({ email: customer.email, limit: 1 })
-  const customerParams = { name: fullName, email: customer.email, address, shipping: { name: fullName, address } }
-  const stripeCustomer = existing.data[0]
-    ? await stripe().customers.update(existing.data[0].id, customerParams)
-    : await stripe().customers.create({ ...customerParams, metadata: { source: 'dearlyclub.eu' } })
+  // Always a NEW Stripe customer. We never look up or edit an existing customer by
+  // email: nobody has proved they own that email at this point, so doing so would let
+  // a stranger change a member's delivery address just by typing their email.
+  const stripeCustomer = await stripe().customers.create({
+    name: fullName,
+    email: customer.email,
+    address,
+    shipping: { name: fullName, address },
+    metadata: { source: 'dearlyclub.eu' },
+  })
 
   // Save the order first, so the address is on file even before payment completes.
   const orderRef = db.collection('orders').doc()

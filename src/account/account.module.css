@@ -367,3 +367,10 @@
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-line);
 }
+
+.memberLabel {
+  color: var(--accent);
+  font-size: var(--text-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}

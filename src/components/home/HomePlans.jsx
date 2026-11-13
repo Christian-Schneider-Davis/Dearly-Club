@@ -1,10 +1,12 @@
 import { formatPrice, giftOptions, plans } from '../../content/site'
 import Reveal from '../motion/Reveal'
+import { isMemberHint, useSessionHint } from '../../lib/sessionHint'
 import Button from '../ui/Button'
 import { Container, Eyebrow, Section } from '../ui/Layout'
 import styles from './home.module.css'
 
 export default function HomePlans() {
+  const isMember = isMemberHint(useSessionHint())
   const [member, guest] = plans
   const giftFrom = Math.min(...giftOptions.map((g) => g.priceCents))
 
@@ -28,9 +30,15 @@ export default function HomePlans() {
                 <li key={p}>{p}</li>
               ))}
             </ul>
-            <Button to="/memberships" variant="light" size="lg" block className={styles.planCta}>
-              Become a member
-            </Button>
+            {isMember ? (
+              <Button to="/manage" variant="light" size="lg" block className={styles.planCta}>
+                You’re a member · Manage
+              </Button>
+            ) : (
+              <Button to="/memberships" variant="light" size="lg" block className={styles.planCta}>
+                Become a member
+              </Button>
+            )}
             <p className={styles.fine}>{member.finePrint}</p>
           </Reveal>
 
@@ -45,9 +53,13 @@ export default function HomePlans() {
                 <li key={p}>{p}</li>
               ))}
             </ul>
-            <Button to="/memberships?plan=guest" variant="outline" size="lg" block className={styles.planCta}>
-              Send me one letter
-            </Button>
+            {isMember ? (
+              <p className={styles.fine}>Included in your membership.</p>
+            ) : (
+              <Button to="/memberships?plan=guest" variant="outline" size="lg" block className={styles.planCta}>
+                Send me one letter
+              </Button>
+            )}
             <p className={styles.fine}>{guest.finePrint}</p>
           </Reveal>
 

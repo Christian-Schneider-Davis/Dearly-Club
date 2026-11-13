@@ -32,6 +32,7 @@ export const createGiftCheckout = onCall({ secrets: [STRIPE_SECRET_KEY], cors },
   if (Object.keys(errors).length) {
     throw new HttpsError('invalid-argument', 'Please check the highlighted fields.', { fields: errors })
   }
+  await rateLimit(request.rawRequest?.ip, 'giftCheckout', 20)
   const base = safeReturnBase(request.data?.returnBase)
   if (!base) throw new HttpsError('invalid-argument', 'Unknown site address.')
 

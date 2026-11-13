@@ -2,6 +2,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { useCallback, useEffect, useState } from 'react'
 import { auth, db } from '../lib/session'
+import { setSessionHint } from '../lib/sessionHint'
 
 /**
  * The signed-in person and their Dearly Chat records.
@@ -16,7 +17,9 @@ export default function useSession() {
     if (!u?.emailVerified) return setData({ profile: null, account: null, loaded: true })
     try {
       const [p, a] = await Promise.all([getDoc(doc(db, 'profiles', u.uid)), getDoc(doc(db, 'users', u.uid))])
-      setData({ profile: p.exists() ? p.data() : null, account: a.exists() ? a.data() : null, loaded: true })
+      const profile = p.exists() ? p.data() : null
+      setData({ profile, account: a.exists() ? a.data() : null, loaded: true })
+      setSessionHint({ name: profile?.displayName || u.email?.split('@')[0], tier: profile?.tier })
     } catch (err) {
       console.error(err)
       setData({ profile: null, account: null, loaded: true, error: true })
@@ -29,6 +32,7 @@ export default function useSession() {
         setUser(u)
         setData((d) => ({ ...d, loaded: false }))
         if (u) load(u)
+        else setSessionHint(null)
       }),
     [load],
   )

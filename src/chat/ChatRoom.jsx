@@ -99,7 +99,7 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
     async (text, retryKey) => {
       const key = retryKey ?? `p${Date.now()}${Math.random().toString(36).slice(2, 6)}`
       nearBottom.current = true
-      setPending((p) => [...p.filter((m) => m.key !== key), { key, text, uid: user.uid, name: profile.displayName, color: profile.avatarColor, host: profile.host, status: 'sending', createdAt: new Date() }])
+      setPending((p) => [...p.filter((m) => m.key !== key), { key, text, uid: user.uid, name: profile.displayName, color: profile.avatarColor, host: profile.host, member: profile.tier === 'member', status: 'sending', createdAt: new Date() }])
       try {
         const { id } = await callFunction('postMessage', { room, text })
         setPending((p) => p.map((m) => (m.key === key ? { ...m, id, status: 'sent' } : m)))

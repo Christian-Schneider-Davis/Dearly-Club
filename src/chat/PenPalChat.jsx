@@ -2,6 +2,7 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Avatar from '../account/Avatar'
+import MemberBadge from '../components/ui/MemberBadge'
 import AddressFields, { addressSchema } from '../components/forms/AddressFields'
 import Field, { CheckboxField } from '../components/forms/Field'
 import Button from '../components/ui/Button'
@@ -71,7 +72,9 @@ function Match({ user, profile, account, reload }) {
           <Avatar name={other.name} color={other.color} size={56} />
           <div>
             <p className={styles.kicker}>Your pen pal</p>
-            <p className={styles.partnerName}>{other.name}</p>
+            <p className={styles.partnerName}>
+              {other.name} <MemberBadge size={16} />
+            </p>
             <p className={styles.muted}>{[other.country && (regionNames?.of(other.country) ?? other.country), match.languages?.join(', ')].filter(Boolean).join(' · ')}</p>
           </div>
         </div>

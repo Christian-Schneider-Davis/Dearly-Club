@@ -3,6 +3,7 @@ import { useState } from 'react'
 import usePageTitle from '../../hooks/usePageTitle'
 import Button from '../../components/ui/Button'
 import Avatar from '../../account/Avatar'
+import MemberBadge from '../../components/ui/MemberBadge'
 import { readCallError } from '../../lib/callErrors'
 import { callFunction } from '../../lib/firebase'
 import { db } from '../firebase'
@@ -88,7 +89,7 @@ export default function Accounts() {
                     <span className={styles.person}>
                       <Avatar name={r.displayName} color={r.avatarColor} size={32} />
                       <span>
-                        <strong>{r.displayName}</strong>
+                        <strong>{r.displayName}</strong> {r.tier === 'member' && !r.suspended && <MemberBadge size={14} />}
                         <span className={styles.sub}>{r.private.email}</span>
                       </span>
                     </span>

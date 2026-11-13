@@ -10,6 +10,8 @@ import Icon from '../components/ui/Icon'
 import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import usePageTitle from '../hooks/usePageTitle'
 import { firstLetter } from '../lib/shipping'
+import { isMemberHint, useSessionHint } from '../lib/sessionHint'
+import MemberBadge from '../components/ui/MemberBadge'
 import styles from './Memberships.module.css'
 
 const photos = [images.watercolourMarketBag]
@@ -18,6 +20,7 @@ const icons = ['postcard', 'letter', 'pen', 'ritual', 'sticker', 'gift']
 
 export default function Memberships() {
   usePageTitle('Memberships')
+  const isMember = isMemberHint(useSessionHint())
   const [params, setParams] = useSearchParams()
   const planId = plans.some((p) => p.id === params.get('plan')) ? params.get('plan') : 'member'
   const plan = plans.find((p) => p.id === planId)
@@ -59,6 +62,23 @@ export default function Memberships() {
               <p className={styles.description}>{plan.description}</p>
             </Reveal>
 
+            {isMember ? (
+              <Reveal delay={100} className={styles.memberPanel}>
+                <p className={styles.memberTitle}>
+                  <MemberBadge size={22} /> You’re a Dearly Member
+                </p>
+                <p>Your letters are on their way every month. Share the joy with someone else, or change your membership any time.</p>
+                <div className={styles.memberActions}>
+                  <Button to="/gift" size="lg" block>
+                    Gift a membership
+                  </Button>
+                  <Button to="/manage" variant="outline" size="lg" block>
+                    Manage or downgrade
+                  </Button>
+                </div>
+              </Reveal>
+            ) : (
+              <>
             <Reveal delay={100}>
               <PlanSelector legend={copy.frequencyLabel} plans={plans} options={copy.options} value={planId} onChange={choose} />
             </Reveal>
@@ -74,6 +94,8 @@ export default function Memberships() {
                 Join by {first.cutoffLabel} for <strong>{first.letterMonth}'s letter</strong>, posted 20–25 {first.postedMonth}.
               </p>
             </Reveal>
+              </>
+            )}
 
             <Reveal delay={200}>
               <ul className={styles.perks}>

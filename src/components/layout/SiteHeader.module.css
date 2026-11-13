@@ -182,3 +182,15 @@
     padding-inline: 1.1rem;
   }
 }
+
+.me {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.meName {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

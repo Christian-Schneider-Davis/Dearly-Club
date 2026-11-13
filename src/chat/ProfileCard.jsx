@@ -1,6 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore'
 import { useEffect, useRef, useState } from 'react'
 import Avatar from '../account/Avatar'
+import MemberBadge from '../components/ui/MemberBadge'
 import { db } from '../lib/session'
 import styles from './chat.module.css'
 
@@ -30,9 +31,8 @@ export default function ProfileCard({ uid, onClose }) {
             <h2 className={styles.dialogTitle}>
               {p.displayName} {p.host && <span className={styles.host}>Host</span>}
             </h2>
-            <p className={styles.muted}>
-              {[p.country && (regionNames?.of(p.country) ?? p.country), p.tier === 'member' ? 'Dearly Member' : null].filter(Boolean).join(' · ')}
-            </p>
+            {p.tier === 'member' && <MemberBadge size={18} label className={styles.memberLabel} />}
+            {p.country && <p className={styles.muted}>{regionNames?.of(p.country) ?? p.country}</p>}
             {p.bio && <p className={styles.bio}>{p.bio}</p>}
             {p.interests?.length > 0 && (
               <ul className={styles.tags}>

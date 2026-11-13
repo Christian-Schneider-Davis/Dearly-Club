@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Avatar from '../account/Avatar'
+import MemberBadge from '../components/ui/MemberBadge'
 import { chatCopy } from '../content/community'
 import styles from './chat.module.css'
 
@@ -39,6 +40,7 @@ export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry,
             <button type="button" className={styles.name} onClick={onProfile} disabled={m.deleted}>
               {m.name}
             </button>
+            {m.member && <MemberBadge size={15} />}
             {m.host && <span className={styles.host}>Host</span>}
             <time className={styles.time} dateTime={m.at.toISOString()}>
               {time(m.at)}

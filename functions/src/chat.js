@@ -70,6 +70,7 @@ export const postMessage = onCall({ cors }, async (request) => {
     name: profile.displayName,
     color: profile.avatarColor ?? 'burgundy',
     host: profile.host === true,
+    member: profile.tier === 'member',
     text: value.text,
     reportCount: 0,
     createdAt: FieldValue.serverTimestamp(),

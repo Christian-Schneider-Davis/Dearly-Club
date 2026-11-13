@@ -270,3 +270,26 @@
   color: var(--text);
   font-weight: 500;
 }
+
+/* Shown instead of the buy options to people who are already members */
+.memberPanel {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  background: var(--color-blush);
+  border-radius: var(--radius-lg);
+}
+.memberTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  color: var(--accent);
+}
+.memberActions {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
