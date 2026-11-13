@@ -54,7 +54,7 @@ export const images = Object.fromEntries(
 export const roles = {
   heroWide: images.shapeOfTheYearWide,
   heroTall: images.shapeOfTheYearPlant2,
-  why: images.purpleWatercolour3,
+  why: images.blueWatercolourPaloSanto,
   founder: images.arianePortrait,
   newsletter: images.envelopeIllustration,
   gallery: [
