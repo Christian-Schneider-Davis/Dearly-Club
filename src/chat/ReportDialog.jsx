@@ -39,7 +39,7 @@ export default function ReportDialog({ room, message, onClose, onDone }) {
           Report this message
         </h2>
         <blockquote className={styles.quote}>
-          <strong>{message.name}:</strong> {message.text.length > 200 ? `${message.text.slice(0, 200)}…` : message.text}
+          <strong>{message.name}:</strong> {message.image && !message.text ? 'a photo' : message.text.length > 200 ? `${message.text.slice(0, 200)}…` : message.text}
         </blockquote>
         <fieldset className={styles.reasons}>
           <legend>What’s wrong?</legend>

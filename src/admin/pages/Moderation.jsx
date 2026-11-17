@@ -67,7 +67,12 @@ export default function Moderation() {
                     {r.count} report{r.count === 1 ? '' : 's'} <Badge status={r.status === 'open' ? 'received' : r.status === 'actioned' ? 'failed' : 'handled'} label={r.status === 'actioned' ? 'hidden' : r.status} />
                   </div>
                 </div>
-                <p className={styles.messageBody}>{hiddenText[r.id]?.text || r.text || <em>(deleted)</em>}</p>
+                {(hiddenText[r.id]?.image ?? r.image)?.url && (
+                  <a href={(hiddenText[r.id]?.image ?? r.image).url} target="_blank" rel="noreferrer" className={styles.reportPhoto}>
+                    <img src={(hiddenText[r.id]?.image ?? r.image).url} alt="Reported photo" loading="lazy" />
+                  </a>
+                )}
+                <p className={styles.messageBody}>{hiddenText[r.id]?.text || r.text || (r.image ? <em>(photo only)</em> : <em>(deleted)</em>)}</p>
                 <ul className={styles.reasonList}>
                   {(r.reasons ?? []).map((x, i) => (
                     <li key={i}>

@@ -52,7 +52,14 @@ export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry,
         ) : m.hidden ? (
           <p className={styles.gone}>{mine ? chatCopy.hiddenOwn : chatCopy.hidden}</p>
         ) : (
-          <p className={styles.text}>{m.text}</p>
+          <>
+            {m.image && (
+              <a href={m.image.url ?? m.image.previewUrl} target="_blank" rel="noreferrer" className={styles.photoLink} aria-label={`Open ${m.name}’s photo full size`}>
+                <img src={m.image.url ?? m.image.previewUrl} width={m.image.width} height={m.image.height} loading="lazy" decoding="async" alt={m.text ? '' : `Photo shared by ${m.name}`} className={styles.photo} />
+              </a>
+            )}
+            {m.text && <p className={styles.text}>{m.text}</p>}
+          </>
         )}
         {m.status === 'sending' && <p className={styles.status}>Sending…</p>}
         {m.status === 'failed' && (

@@ -7,15 +7,19 @@
  *  blockMember    hide someone's messages from you (they aren't told)
  *  adminModerate  admin: hide / restore a message, or close its reports
  *
- * rooms/{room}/messages/{id}  { uid, name, color, host, text, createdAt, deleted?, hidden?, reportCount }
+ * rooms/{room}/messages/{id}  { uid, name, color, host, text, image?, createdAt, deleted?, hidden?, reportCount }
+ *   image: { url, path, width, height }: a photo in Cloud Storage at chat/<room>/<id>.jpg.
+ *   The browser uploads it to chat-uploads/<uid>/ first (storage.rules); postMessage moves it.
  * reports/{room__id}          one per reported message: reasons, reporters, status
  * moderation/{room__id}       the original text of a hidden message (admins only)
  */
 import { FieldValue } from 'firebase-admin/firestore'
+import { getDownloadURL, getStorage } from 'firebase-admin/storage'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
+import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { requireAdmin } from './admin.js'
 import { cors, db } from './shared.js'
-import { AUTO_HIDE_REPORTS, REPORT_REASONS, canUseRoom, isPenPalRoom, messagesPath, validateChatMessage } from './validate.js'
+import { AUTO_HIDE_REPORTS, PHOTO_MAX_BYTES, REPORT_REASONS, canUseRoom, isPenPalRoom, messagesPath, validateChatMessage } from './validate.js'
 
 const messages = (room) => {
   const [a, b, c] = messagesPath(room)
@@ -23,6 +27,26 @@ const messages = (room) => {
 }
 const msgRef = (room, id) => messages(room).doc(id)
 const key = (room, id) => `${room}__${id}`
+
+const bucketName = () => JSON.parse(process.env.FIREBASE_CONFIG || '{}').storageBucket || `${process.env.GCLOUD_PROJECT}.firebasestorage.app`
+const bucket = () => getStorage().bucket(bucketName())
+/** Removes a chat photo from storage (no error if it's already gone). */
+const deletePhoto = (image) => (image?.path ? bucket().file(image.path).delete({ ignoreNotFound: true }).catch((e) => console.error('photo delete', e)) : null)
+
+/** Checks an uploaded photo and moves it next to its message. Returns the stored image. */
+async function attachPhoto(image, room, id) {
+  const upload = bucket().file(image.path)
+  const [exists] = await upload.exists()
+  if (!exists) throw new HttpsError('invalid-argument', 'That photo didn’t upload properly. Please try again.')
+  const [meta] = await upload.getMetadata()
+  if (meta.contentType !== 'image/jpeg' || Number(meta.size) > PHOTO_MAX_BYTES) {
+    await upload.delete({ ignoreNotFound: true })
+    throw new HttpsError('invalid-argument', 'Please choose a photo (JPEG, PNG or HEIC) under 5 MB.')
+  }
+  const dest = bucket().file(`chat/${room}/${id}.jpg`)
+  await upload.move(dest)
+  return { url: await getDownloadURL(dest), path: dest.name, width: image.width, height: image.height }
+}
 
 /** Signed-in, confirmed, has a profile, not paused. Returns uid + profile. */
 async function requireProfile(request) {
@@ -53,7 +77,7 @@ async function chatRateLimit(uid) {
 
 export const postMessage = onCall({ cors }, async (request) => {
   const { uid, profile } = await requireProfile(request)
-  const { value, errors } = validateChatMessage(request.data)
+  const { value, errors } = validateChatMessage(request.data, uid)
   if (Object.keys(errors).length) throw new HttpsError('invalid-argument', Object.values(errors)[0], { fields: errors })
   if (isPenPalRoom(value.room)) {
     const match = (await db.collection('penpals').doc(value.room.slice(3)).get()).data()
@@ -65,6 +89,7 @@ export const postMessage = onCall({ cors }, async (request) => {
   }
   await chatRateLimit(uid)
   const ref = messages(value.room).doc()
+  const image = value.image ? await attachPhoto(value.image, value.room, ref.id) : null
   await ref.set({
     uid,
     name: profile.displayName,
@@ -72,6 +97,7 @@ export const postMessage = onCall({ cors }, async (request) => {
     host: profile.host === true,
     member: profile.tier === 'member',
     text: value.text,
+    ...(image ? { image } : {}),
     reportCount: 0,
     createdAt: FieldValue.serverTimestamp(),
   })
@@ -89,14 +115,20 @@ export const deleteMessage = onCall({ cors }, async (request) => {
   if (msg.uid !== uid && !(await db.collection('admins').doc(uid).get()).exists) {
     throw new HttpsError('permission-denied', 'You can only delete your own messages.')
   }
-  await ref.update({ deleted: true, text: '', deletedAt: FieldValue.serverTimestamp() })
+  await ref.update({ deleted: true, text: '', image: FieldValue.delete(), deletedAt: FieldValue.serverTimestamp() })
+  await deletePhoto(msg.image)
+  await db.collection('moderation').doc(key(String(room), String(id))).get().then((d) => deletePhoto(d.data()?.image))
   return { ok: true }
 })
 
-/** Hides a message: its text moves to moderation/ where only admins can read it. */
+/** Hides a message: its text (and photo) move to moderation/ where only admins can read them. */
 async function hide(tx, room, id, msg, why) {
-  tx.set(db.collection('moderation').doc(key(room, id)), { room, id, uid: msg.uid, name: msg.name, text: msg.text, hiddenBecause: why, at: FieldValue.serverTimestamp() }, { merge: true })
-  tx.update(msgRef(room, id), { hidden: true, text: '' })
+  tx.set(
+    db.collection('moderation').doc(key(room, id)),
+    { room, id, uid: msg.uid, name: msg.name, text: msg.text, image: msg.image ?? null, hiddenBecause: why, at: FieldValue.serverTimestamp() },
+    { merge: true },
+  )
+  tx.update(msgRef(room, id), { hidden: true, text: '', image: FieldValue.delete() })
 }
 
 export const reportMessage = onCall({ cors }, async (request) => {
@@ -124,6 +156,7 @@ export const reportMessage = onCall({ cors }, async (request) => {
         authorUid: msg.uid,
         authorName: msg.name,
         text: msg.text || report?.text || '',
+        image: msg.image ?? report?.image ?? null,
         messageAt: msg.createdAt ?? null,
         reporters,
         count: reporters.length,
@@ -169,8 +202,8 @@ export const adminModerate = onCall({ cors }, async (request) => {
     if (!msg) throw new HttpsError('not-found', 'That message no longer exists.')
 
     if (action === 'hide' && !msg.hidden && !msg.deleted) await hide(tx, room, id, msg, 'admin')
-    if (action === 'restore' && msg.hidden && mod?.text) {
-      tx.update(ref, { hidden: false, text: mod.text })
+    if (action === 'restore' && msg.hidden && (mod?.text || mod?.image)) {
+      tx.update(ref, { hidden: false, text: mod.text ?? '', ...(mod.image ? { image: mod.image } : {}) })
       tx.delete(modRef)
     }
     if (report) {
@@ -189,8 +222,21 @@ export async function eraseMessagesBy(uid) {
   const snap = await db.collectionGroup('messages').where('uid', '==', uid).get()
   for (let i = 0; i < snap.docs.length; i += 400) {
     const batch = db.batch()
-    snap.docs.slice(i, i + 400).forEach((d) => batch.update(d.ref, { deleted: true, text: '', name: 'Former member', color: 'sand' }))
+    snap.docs.slice(i, i + 400).forEach((d) => batch.update(d.ref, { deleted: true, text: '', image: FieldValue.delete(), name: 'Former member', color: 'sand' }))
     await batch.commit()
   }
+  await Promise.all(snap.docs.map((d) => deletePhoto(d.data().image)))
+  const hidden = await db.collection('moderation').where('uid', '==', uid).get()
+  await Promise.all(hidden.docs.map((d) => deletePhoto(d.data().image)))
+  await bucket().deleteFiles({ prefix: `chat-uploads/${uid}/` }).catch(() => {})
   return snap.size
 }
+
+/** Photos uploaded but never sent (the person closed the page) are removed after a day. */
+export const cleanUpChatUploads = onSchedule({ schedule: 'every day 04:00', timeZone: 'Europe/Paris' }, async () => {
+  const [files] = await bucket().getFiles({ prefix: 'chat-uploads/' })
+  const cutoff = Date.now() - 24 * 3600 * 1000
+  const stale = files.filter((f) => new Date(f.metadata.timeCreated).getTime() < cutoff)
+  await Promise.all(stale.map((f) => f.delete({ ignoreNotFound: true })))
+  console.log(`Removed ${stale.length} unsent chat photo(s).`)
+})

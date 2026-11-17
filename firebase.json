@@ -4,11 +4,20 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs22",
-      "ignore": ["node_modules", ".git", "test", "scripts", "*.log"]
+      "ignore": [
+        "node_modules",
+        ".git",
+        "test",
+        "scripts",
+        "*.log"
+      ]
     }
   ],
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

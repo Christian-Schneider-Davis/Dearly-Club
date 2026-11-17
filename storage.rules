@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Cloud Storage holds The Dearly Chat's photos.
+// Signed-in people with a confirmed email may upload one JPEG (under 5 MB) into
+// their own chat-uploads/ folder; the postMessage function checks it and moves it
+// next to the message. Nobody reads storage directly: the chat shows photos through
+// the private links stored on each message, which only people in that chat can see.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /chat-uploads/{uid}/{file} {
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && file.matches('[A-Za-z0-9_-]{10,40}[.]jpg')
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+    match /{everything=**} {
+      allow read, write: if false;
+    }
+  }
+}

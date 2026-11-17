@@ -209,3 +209,16 @@ test('address for pen pals uses checkout rules', () => {
   assert.deepEqual(validateAddress({ name: 'Léa', line1: '1 Rue', city: 'Paris', postalCode: '75001', country: 'fr' }).errors, {})
   assert.deepEqual(validateAddress({ name: 'A', line1: '1 St', city: 'Dublin', country: 'IE' }).errors, {})
 })
+
+test('chat photos: only your own upload, sensible size, text optional', () => {
+  const uid = 'abcDEF1234567890'
+  const image = { path: `chat-uploads/${uid}/k3j4h5g6f7d8.jpg`, width: 1600, height: 1200 }
+  const ok = validateChatMessage({ room: 'the-dearly-club', text: '', image }, uid)
+  assert.deepEqual(ok.errors, {})
+  assert.deepEqual(ok.value.image, image)
+  assert.ok(validateChatMessage({ room: 'the-dearly-club', image }, 'someoneElse12345').errors.image)
+  assert.ok(validateChatMessage({ room: 'the-dearly-club', image: { ...image, path: `chat/${uid}/x.jpg` } }, uid).errors.image)
+  assert.ok(validateChatMessage({ room: 'the-dearly-club', image: { ...image, path: `chat-uploads/${uid}/../../a.jpg` } }, uid).errors.image)
+  assert.ok(validateChatMessage({ room: 'the-dearly-club', image: { ...image, width: 99999 } }, uid).errors.image)
+  assert.equal(validateChatMessage({ room: 'the-dearly-club', text: 'hi' }, uid).value.image, null)
+})

@@ -96,15 +96,25 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
   }
 
   const send = useCallback(
-    async (text, retryKey) => {
+    async (text, photo, retryKey) => {
       const key = retryKey ?? `p${Date.now()}${Math.random().toString(36).slice(2, 6)}`
       nearBottom.current = true
-      setPending((p) => [...p.filter((m) => m.key !== key), { key, text, uid: user.uid, name: profile.displayName, color: profile.avatarColor, host: profile.host, member: profile.tier === 'member', status: 'sending', createdAt: new Date() }])
+      const image = photo ? { previewUrl: photo.previewUrl, width: photo.width, height: photo.height } : undefined
+      const draft = { key, text, photo, uid: user.uid, name: profile.displayName, color: profile.avatarColor, host: profile.host, member: profile.tier === 'member', image, status: 'sending', createdAt: new Date() }
+      setPending((p) => [...p.filter((m) => m.key !== key), draft])
       try {
-        const { id } = await callFunction('postMessage', { room, text })
+        let upload
+        if (photo) {
+          // Upload once; a retry after a failed send reuses the same upload.
+          photo.path ??= await (await import('./photo')).uploadPhoto(user.uid, photo.blob)
+          upload = { path: photo.path, width: photo.width, height: photo.height }
+        }
+        const { id } = await callFunction('postMessage', { room, text, ...(upload ? { image: upload } : {}) })
         setPending((p) => p.map((m) => (m.key === key ? { ...m, id, status: 'sent' } : m)))
       } catch (err) {
-        setPending((p) => p.map((m) => (m.key === key ? { ...m, status: 'failed', error: readCallError(err, 'Not sent.').message } : m)))
+        if (photo && err?.code === 'functions/invalid-argument') photo.path = undefined // the upload was rejected; upload again on retry
+        const message = err?.code?.startsWith?.('storage/') ? 'The photo didn’t upload. Check your connection.' : readCallError(err, 'Not sent.').message
+        setPending((p) => p.map((m) => (m.key === key ? { ...m, status: 'failed', error: message } : m)))
       }
     },
     [room, user.uid, profile],
@@ -183,8 +193,11 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
                 onReport={() => setReporting(m)}
                 onBlock={() => block(m)}
                 onDelete={() => remove(m)}
-                onRetry={() => send(m.text, m.key)}
-                onDiscard={() => setPending((p) => p.filter((x) => x.key !== m.key))}
+                onRetry={() => send(m.text, m.photo, m.key)}
+                onDiscard={() => {
+                  if (m.image?.previewUrl) URL.revokeObjectURL(m.image.previewUrl)
+                  setPending((p) => p.filter((x) => x.key !== m.key))
+                }}
                 onProfile={() => setViewing(m.uid)}
               />
             </div>

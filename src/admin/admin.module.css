@@ -651,3 +651,16 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+
+.reportPhoto {
+  display: inline-block;
+  margin-block: var(--space-2);
+  line-height: 0;
+}
+.reportPhoto img {
+  max-width: min(100%, 16rem);
+  max-height: 14rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-line);
+  object-fit: cover;
+}

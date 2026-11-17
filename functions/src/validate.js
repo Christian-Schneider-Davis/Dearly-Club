@@ -346,14 +346,31 @@ export const MESSAGE_LIMIT = 2000
 export const REPORT_REASONS = { unkind: 'Unkind or harassing', spam: 'Spam or selling', personal: 'Shares personal information', sexual: 'Sexual or inappropriate', other: 'Something else' }
 export const AUTO_HIDE_REPORTS = 3
 
-export function validateChatMessage(input = {}) {
+// Chat photos: the browser uploads a resized JPEG to chat-uploads/<uid>/<random>.jpg,
+// then postMessage moves it next to the message.
+export const PHOTO_MAX_BYTES = 5 * 1024 * 1024
+const UPLOAD_PATH = /^chat-uploads\/([A-Za-z0-9]{10,128})\/[A-Za-z0-9_-]{10,40}\.jpg$/
+const dim = (n) => Number.isInteger(n) && n >= 1 && n <= 4096
+
+/** { path, width, height } of an uploaded photo, or null. uid: the photo must be theirs. */
+export function validateChatImage(input, uid) {
+  if (!input || typeof input !== 'object') return null
+  const path = typeof input.path === 'string' ? input.path : ''
+  const m = UPLOAD_PATH.exec(path)
+  if (!m || (uid && m[1] !== uid) || !dim(input.width) || !dim(input.height)) return null
+  return { path, width: input.width, height: input.height }
+}
+
+export function validateChatMessage(input = {}, uid) {
   const room = clean(input.room, 40)
   // Keep line breaks (max 2 blank lines in a row), trim the ends.
   const text = typeof input.text === 'string' ? input.text.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim().slice(0, MESSAGE_LIMIT) : ''
+  const image = input.image == null ? null : validateChatImage(input.image, uid)
   const errors = {}
   if (!ROOMS[room] && !isPenPalRoom(room)) errors.room = 'Unknown chat.'
-  if (!text) errors.text = 'Write a message first.'
-  return { value: { room, text }, errors }
+  if (input.image != null && !image) errors.image = 'That photo didn’t upload properly. Please try again.'
+  else if (!text && !image) errors.text = 'Write a message first.'
+  return { value: { room, text, image }, errors }
 }
 
 export const canUseRoom = (room, tier) => ROOMS[room] === 'free' || (ROOMS[room] === 'member' && tier === 'member')

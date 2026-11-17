@@ -203,7 +203,7 @@ export const legalDocs = {
               'Consent records: that you accepted our terms (and, for memberships, the monthly renewal), with the date, time and IP address, so we can prove it.',
               'Messages: what you send us through the contact form or by email, and any withdrawal requests.',
               'Newsletter: your email, if you sign up.',
-              'The Dearly Chat: your email, the profile you choose to share (name, country, short bio, interests), your confirmation that you are 18+ and accept the Community Guidelines, and the messages you post. Your email is never shown to other members.',
+              'The Dearly Chat: your email, the profile you choose to share (name, country, short bio, interests), your confirmation that you are 18+ and accept the Community Guidelines, and the messages and photos you post. Photos are resized and stripped of hidden camera data (such as location) before upload. Your email is never shown to other members.',
               'Technical data: IP address and basic browser information in the security logs of our hosting and servers, and your cookie choice.',
             ],
           },

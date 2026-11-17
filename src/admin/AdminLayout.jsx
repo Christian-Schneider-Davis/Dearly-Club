@@ -53,7 +53,7 @@ export default function AdminLayout({ user }) {
           <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className={styles.footLink}>
             Stripe dashboard ↗
           </a>
-          <Link to="/dearly-chat" className={styles.footLink}>
+          <Link to="/dearly-chat/the-dearly-club" className={styles.footLink}>
             Open The Dearly Chat
           </Link>
           <Link to="/" className={styles.footLink}>
