@@ -190,6 +190,7 @@ export default function ChatRoom({ room, info, user, profile, account, onAccount
               <Message
                 m={m}
                 mine={m.uid === user.uid}
+                isHost={profile.host === true}
                 onReport={() => setReporting(m)}
                 onBlock={() => block(m)}
                 onDelete={() => remove(m)}

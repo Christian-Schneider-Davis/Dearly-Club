@@ -112,12 +112,17 @@ export const deleteMessage = onCall({ cors }, async (request) => {
   const ref = msgRef(String(room), String(id))
   const msg = (await ref.get()).data()
   if (!msg) throw new HttpsError('not-found', 'That message no longer exists.')
-  if (msg.uid !== uid && !(await db.collection('admins').doc(uid).get()).exists) {
-    throw new HttpsError('permission-denied', 'You can only delete your own messages.')
-  }
-  await ref.update({ deleted: true, text: '', image: FieldValue.delete(), deletedAt: FieldValue.serverTimestamp() })
+  const isAdmin = (await db.collection('admins').doc(uid).get()).exists
+  if (msg.uid !== uid && !isAdmin) throw new HttpsError('permission-denied', 'You can only delete your own messages.')
+  await ref.update({ deleted: true, text: '', image: FieldValue.delete(), deletedAt: FieldValue.serverTimestamp(), ...(msg.uid !== uid ? { deletedBy: 'host' } : {}) })
   await deletePhoto(msg.image)
-  await db.collection('moderation').doc(key(String(room), String(id))).get().then((d) => deletePhoto(d.data()?.image))
+  // Erase every copy: the hidden original (moderation/) and the copy kept with any report.
+  const modRef = db.collection('moderation').doc(key(String(room), String(id)))
+  await modRef.get().then((d) => (d.exists ? Promise.all([deletePhoto(d.data().image), modRef.delete()]) : null))
+  const reportRef = db.collection('reports').doc(key(String(room), String(id)))
+  if ((await reportRef.get()).exists) {
+    await reportRef.update({ text: '', image: null, status: 'actioned', resolvedBy: isAdmin ? uid : 'author', resolvedAt: FieldValue.serverTimestamp() })
+  }
   return { ok: true }
 })
 

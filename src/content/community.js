@@ -37,6 +37,7 @@ export const chatPage = {
     { title: 'Make your profile', text: 'A name, your country and a few words about you. Your email and address are never shown.' },
     { title: 'Say hello', text: 'Join the conversation, and if you’re a member, ask for a pen pal.' },
   ],
+  introSignedIn: (name) => `Welcome back${name ? `, ${name}` : ''}. Pick a club below to join the conversation.`,
   safety: 'For adults (18+). Everyone agrees to our Community Guidelines, and every message can be reported.',
 }
 
@@ -95,6 +96,7 @@ export const chatCopy = {
   hiddenOwn: 'Hidden while we review a report.',
   hidden: 'Message hidden while we review it.',
   deleted: 'Message deleted.',
+  deletedByHost: 'Message removed by the host.',
   reportReasons: {
     unkind: 'Unkind or harassing',
     spam: 'Spam or selling',

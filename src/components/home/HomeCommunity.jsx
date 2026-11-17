@@ -1,10 +1,12 @@
 import { clubs } from '../../content/site'
+import { useSessionHint } from '../../lib/sessionHint'
 import Reveal from '../motion/Reveal'
 import Button from '../ui/Button'
 import { Container, Eyebrow, Section } from '../ui/Layout'
 import styles from './home.module.css'
 
 export default function HomeCommunity() {
+  const session = useSessionHint()
   return (
     <Section aria-labelledby="community-title">
       <Container>
@@ -13,8 +15,8 @@ export default function HomeCommunity() {
             <Eyebrow>The Dearly Chat</Eyebrow>
             <h2 id="community-title">A slower kind of community</h2>
           </div>
-          <Button to="/dearly-chat" variant="outline">
-            Create a free account
+          <Button to={session ? clubs[0].path : '/dearly-chat'} variant="outline">
+            {session ? 'Open the chat' : 'Create a free account'}
           </Button>
         </Reveal>
 

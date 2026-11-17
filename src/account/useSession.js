@@ -14,7 +14,12 @@ export default function useSession() {
   const [, rerender] = useState(0)
 
   const load = useCallback(async (u) => {
-    if (!u?.emailVerified) return setData({ profile: null, account: null, loaded: true })
+    if (!u) return setData({ profile: null, account: null, loaded: true })
+    if (!u.emailVerified) {
+      // Signed in, email not confirmed yet: still signed in as far as the site is concerned.
+      setSessionHint({ name: u.email?.split('@')[0], tier: 'free' })
+      return setData({ profile: null, account: null, loaded: true })
+    }
     try {
       const [p, a] = await Promise.all([getDoc(doc(db, 'profiles', u.uid)), getDoc(doc(db, 'users', u.uid))])
       const profile = p.exists() ? p.data() : null

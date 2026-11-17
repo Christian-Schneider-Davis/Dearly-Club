@@ -5,11 +5,14 @@ import { Container, Eyebrow, Section } from '../components/ui/Layout'
 import ResponsiveImage from '../components/ui/ResponsiveImage'
 import { chatPage as copy } from '../content/community'
 import { clubs } from '../content/site'
+import { isMemberHint, useSessionHint } from '../lib/sessionHint'
 import usePageTitle from '../hooks/usePageTitle'
 import styles from './DearlyChat.module.css'
 
 export default function DearlyChat() {
   usePageTitle('The Dearly Chat')
+  const session = useSessionHint() // signed in? (no sign-in prompts then)
+  const member = isMemberHint(session)
   return (
     <>
       <Section className={styles.hero}>
@@ -17,14 +20,27 @@ export default function DearlyChat() {
           <Reveal className={styles.heroText}>
             <Eyebrow>{copy.eyebrow}</Eyebrow>
             <h1 className={styles.title}>{copy.heading}</h1>
-            <p className={styles.lead}>{copy.intro}</p>
+            <p className={styles.lead}>{session ? copy.introSignedIn(session.name) : copy.intro}</p>
             <div className={styles.actions}>
-              <Button to="/account?mode=signup" size="lg">
-                Create a free account
-              </Button>
-              <Button to="/account" variant="outline" size="lg">
-                Sign in
-              </Button>
+              {session ? (
+                <>
+                  <Button to={clubs[0].path} size="lg">
+                    Open {clubs[0].name}
+                  </Button>
+                  <Button to="/account" variant="outline" size="lg">
+                    Your account
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button to="/account?mode=signup" size="lg">
+                    Create a free account
+                  </Button>
+                  <Button to="/account" variant="outline" size="lg">
+                    Sign in
+                  </Button>
+                </>
+              )}
             </div>
           </Reveal>
           <Reveal delay={120} className={styles.heroImage}>
@@ -45,7 +61,7 @@ export default function DearlyChat() {
                 <h3 className={styles.clubName}>{c.name}</h3>
                 <p>{c.blurb}</p>
                 <Button to={c.path} variant="outline">
-                  {c.access === 'free' ? 'Open the chat' : 'Members: go in'}
+                  {c.access === 'free' ? 'Open the chat' : session ? (member ? 'Go in' : 'See what’s inside') : 'Members: go in'}
                 </Button>
               </Reveal>
             ))}
@@ -55,26 +71,40 @@ export default function DearlyChat() {
 
       <Section>
         <Container narrow>
-          <Reveal>
-            <h2 className={styles.h2}>How it works</h2>
-          </Reveal>
-          <ol className={styles.steps}>
-            {copy.steps.map((s, i) => (
-              <Reveal as="li" key={s.title} delay={i * 80}>
-                <span className={styles.stepNum}>{i + 1}</span>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.text}</p>
-                </div>
+          {!session && (
+            <>
+              <Reveal>
+                <h2 className={styles.h2}>How it works</h2>
               </Reveal>
-            ))}
-          </ol>
+              <ol className={styles.steps}>
+                {copy.steps.map((s, i) => (
+                  <Reveal as="li" key={s.title} delay={i * 80}>
+                    <span className={styles.stepNum}>{i + 1}</span>
+                    <div>
+                      <h3>{s.title}</h3>
+                      <p>{s.text}</p>
+                    </div>
+                  </Reveal>
+                ))}
+              </ol>
+            </>
+          )}
           <p className={styles.safety}>{copy.safety}</p>
           <div className={styles.actions}>
-            <Button to="/account?mode=signup">Create a free account</Button>
-            <Button to="/memberships" variant="outline">
-              Become a member
-            </Button>
+            {session ? (
+              <Button to={clubs[0].path}>Open {clubs[0].name}</Button>
+            ) : (
+              <Button to="/account?mode=signup">Create a free account</Button>
+            )}
+            {member ? (
+              <Button to="/gift" variant="outline">
+                Gift a membership
+              </Button>
+            ) : (
+              <Button to="/memberships" variant="outline">
+                Become a member
+              </Button>
+            )}
           </div>
         </Container>
       </Section>

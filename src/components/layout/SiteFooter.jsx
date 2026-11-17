@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { brand, legalNav, social } from '../../content/site'
+import { useSessionHint } from '../../lib/sessionHint'
 import { useConsent } from '../consent/ConsentProvider'
 import { Container } from '../ui/Layout'
 import Icon from '../ui/Icon'
@@ -34,6 +35,7 @@ const columns = [
 
 export default function SiteFooter() {
   const { openSettings } = useConsent()
+  const session = useSessionHint()
   return (
     <footer className={styles.footer}>
       <Container className={styles.top}>
@@ -56,7 +58,7 @@ export default function SiteFooter() {
               <ul>
                 {col.links.map((l) => (
                   <li key={l.to}>
-                    <Link to={l.to}>{l.label}</Link>
+                    <Link to={l.to}>{l.to === '/account' && session ? 'Your account' : l.label}</Link>
                   </li>
                 ))}
               </ul>

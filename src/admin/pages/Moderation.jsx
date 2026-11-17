@@ -34,6 +34,17 @@ export default function Moderation() {
     }
   }
 
+  const erase = async (r) => {
+    if (!window.confirm(`Delete this message by ${r.authorName} for everyone? This can’t be undone.`)) return
+    try {
+      await callFunction('deleteMessage', { room: r.room, id: r.messageId })
+      reports.setRows((rows) => rows.map((x) => (x.id === r.id ? { ...x, status: 'actioned', text: '', image: null, erased: true } : x)))
+      hidden.reload()
+    } catch (err) {
+      window.alert(readCallError(err).message)
+    }
+  }
+
   return (
     <>
       <PageHead
@@ -82,7 +93,9 @@ export default function Moderation() {
                   ))}
                 </ul>
                 <div className={styles.cardActions}>
-                  {isHidden ? (
+                  {r.erased || (!r.text && !r.image && !isHidden) ? (
+                    <span className={styles.muted}>Deleted</span>
+                  ) : isHidden ? (
                     <Button size="md" variant="outline" onClick={() => act(r, 'restore')}>
                       Restore message
                     </Button>
@@ -90,6 +103,11 @@ export default function Moderation() {
                     <Button size="md" onClick={() => act(r, 'hide')}>
                       Hide message
                     </Button>
+                  )}
+                  {!r.erased && (r.text || r.image || isHidden) && (
+                    <button type="button" className={styles.linkButton} onClick={() => erase(r)}>
+                      Delete for everyone
+                    </button>
                   )}
                   {r.status === 'open' && (
                     <button type="button" className={styles.linkButton} onClick={() => act(r, 'dismiss')}>

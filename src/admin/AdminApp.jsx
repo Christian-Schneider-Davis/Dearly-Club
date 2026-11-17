@@ -1,4 +1,5 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { readSessionHint, setSessionHint } from '../lib/sessionHint'
 import { doc, getDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -29,6 +30,7 @@ export default function AdminApp() {
     () =>
       onAuthStateChanged(auth, async (u) => {
         if (!u) {
+          setSessionHint(null)
           setIsAdmin(false)
           setUser(null)
           return
@@ -41,6 +43,11 @@ export default function AdminApp() {
         }
         setIsAdmin(ok)
         setUser(u)
+        if (ok && !readSessionHint()) {
+          // Signed in through the admin page: let the public site know too (name from the chat profile).
+          const profile = await getDoc(doc(db, 'profiles', u.uid)).then((d) => d.data()).catch(() => null)
+          setSessionHint({ name: profile?.displayName || u.email?.split('@')[0], tier: profile?.tier ?? 'member' })
+        }
       }),
     [],
   )

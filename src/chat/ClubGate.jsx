@@ -12,7 +12,23 @@ export default function ClubGate({ name, access, children }) {
   const { user, profile, account, loading } = session
   let gate = null
   if (loading) gate = <p className={styles.muted}>Loading…</p>
-  else if (!user || !user.emailVerified || !profile)
+  else if (user && !user.emailVerified)
+    gate = (
+      <Notice
+        title="Confirm your email first"
+        text={`We sent a confirmation link to ${user.email}. Open it, then come back here.`}
+        action={<Button to="/account">Resend or check</Button>}
+      />
+    )
+  else if (user && !profile)
+    gate = (
+      <Notice
+        title={`One last step to join ${name}`}
+        text="Create your chat profile: the name and details other members will see."
+        action={<Button to="/account">Create my profile</Button>}
+      />
+    )
+  else if (!user)
     gate = (
       <Notice
         title={`Join ${name}`}

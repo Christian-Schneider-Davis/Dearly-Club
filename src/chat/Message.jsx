@@ -6,7 +6,7 @@ import styles from './chat.module.css'
 
 const time = (d) => d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
-export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry, onDiscard, onProfile }) {
+export default function Message({ m, mine, isHost, onReport, onBlock, onDelete, onRetry, onDiscard, onProfile }) {
   const [menu, setMenu] = useState(false)
   const menuRef = useRef(null)
 
@@ -22,8 +22,8 @@ export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry,
     }
   }, [menu])
 
-  const gone = m.deleted || m.hidden
-  const canAct = m.id && !m.status && !gone
+  // Hosts can also delete a message that's hidden while under review.
+  const canAct = m.id && !m.status && !m.deleted && (!m.hidden || isHost)
 
   return (
     <article className={`${styles.msg} ${m.grouped ? styles.grouped : ''} ${m.status ? styles.pending : ''}`} aria-label={`${m.name}, ${time(m.at)}`}>
@@ -48,7 +48,7 @@ export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry,
           </p>
         )}
         {m.deleted ? (
-          <p className={styles.gone}>{chatCopy.deleted}</p>
+          <p className={styles.gone}>{m.deletedBy === 'host' ? chatCopy.deletedByHost : chatCopy.deleted}</p>
         ) : m.hidden ? (
           <p className={styles.gone}>{mine ? chatCopy.hiddenOwn : chatCopy.hidden}</p>
         ) : (
@@ -82,15 +82,18 @@ export default function Message({ m, mine, onReport, onBlock, onDelete, onRetry,
           </button>
           {menu && (
             <div className={styles.menu} role="menu">
-              {mine ? (
+              {(mine || isHost) && (
                 <button type="button" role="menuitem" onClick={() => (setMenu(false), onDelete())}>
-                  Delete message
+                  {mine ? 'Delete message' : 'Delete message (host)'}
                 </button>
-              ) : (
+              )}
+              {!mine && (
                 <>
-                  <button type="button" role="menuitem" onClick={() => (setMenu(false), onReport())}>
-                    Report message
-                  </button>
+                  {!isHost && (
+                    <button type="button" role="menuitem" onClick={() => (setMenu(false), onReport())}>
+                      Report message
+                    </button>
+                  )}
                   <button type="button" role="menuitem" onClick={() => (setMenu(false), onBlock())}>
                     Block {m.name}
                   </button>
